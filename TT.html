@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Travel Log — I miei viaggi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+<style>
+    :root {
+        --bg: #0B1420;
+        --panel: #121F30;
+        --panel-raised: #16283D;
+        --line: #24354C;
+        --text: #E9EEF4;
+        --muted: #7E90A8;
+        --amber: #F5A623;
+        --teal: #43C6AC;
+        --coral: #E4572E;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: 'Manrope', sans-serif;
+        min-height: 100vh;
+        padding: 28px 20px 60px;
+    }
+    .wrap { max-width: 1180px; margin: 0 auto; }
+
+    header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 24px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--line);
+    }
+    h1 { font-size: 1.9em; font-weight: 800; letter-spacing: -0.01em; }
+    .now-badge { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 0.95em; }
+    .now-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 0 4px rgba(67,198,172,0.18); }
+    .now-badge strong { color: var(--text); font-weight: 700; }
+
+    .quick-add { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; margin-bottom: 26px; }
+    .quick-add-title { font-size: 0.85em; color: var(--muted); margin-bottom: 4px; }
+    .quick-add-hint { font-size: 0.78em; color: var(--muted); margin-bottom: 12px; opacity: 0.8; }
+    #travelForm { display: grid; grid-template-columns: 1.6fr 1fr 1fr auto; gap: 10px; align-items: end; }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 0.78em; color: var(--muted); }
+    .field input { background: var(--bg); border: 1px solid var(--line); color: var(--text); padding: 10px 12px; border-radius: 9px; font-family: inherit; font-size: 0.95em; width: 100%; }
+    .field input:focus { outline: none; border-color: var(--amber); }
+    .add-btn { background: var(--amber); color: #16110A; border: none; padding: 11px 20px; border-radius: 9px; font-weight: 700; font-size: 0.95em; cursor: pointer; white-space: nowrap; transition: filter 0.15s; }
+    .add-btn:hover { filter: brightness(1.08); }
+
+    .stat-strip { display: grid; grid-template-columns: repeat(5, 1fr); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; margin-bottom: 30px; }
+    .stat { background: var(--panel); padding: 20px 16px; border-right: 1px solid var(--line); }
+    .stat:last-child { border-right: none; }
+    .stat-value { font-family: 'JetBrains Mono', monospace; font-size: 1.7em; font-weight: 700; color: var(--amber); line-height: 1; }
+    .stat-value.teal { color: var(--teal); }
+    .stat-label { margin-top: 8px; color: var(--muted); font-size: 0.8em; }
+
+    .section-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+    .section-head h2 { font-size: 1.05em; font-weight: 700; }
+    .section-note { font-size: 0.8em; color: var(--muted); margin-top: -8px; margin-bottom: 14px; }
+    .unit-toggle { display: flex; gap: 4px; background: var(--panel-raised); border: 1px solid var(--line); border-radius: 20px; padding: 3px; }
+    .unit-toggle button { background: transparent; border: none; color: var(--muted); padding: 5px 12px; border-radius: 16px; font-size: 0.8em; font-family: inherit; cursor: pointer; }
+    .unit-toggle button.active { background: var(--amber); color: #16110A; font-weight: 700; }
+
+    .main-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 22px; margin-bottom: 26px; }
+    .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+
+    .bar-row { display: grid; grid-template-columns: 120px 1fr 84px; align-items: center; gap: 12px; margin-bottom: 9px; }
+    .bar-row .country-name { font-size: 0.86em; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
+    .cat-flag { font-size: 0.7em; opacity: 0.7; }
+    .bar-track { background: var(--bg); border-radius: 6px; height: 13px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 6px; transition: width 0.4s ease; }
+    .bar-row .value { font-family: 'JetBrains Mono', monospace; font-size: 0.78em; color: var(--muted); text-align: right; white-space: nowrap; }
+
+    .donut-wrap { position: relative; max-width: 220px; margin: 0 auto 16px; }
+    .donut-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; }
+    .donut-center .num { font-family: 'JetBrains Mono', monospace; font-size: 1.5em; font-weight: 700; }
+    .donut-center .lbl { font-size: 0.7em; color: var(--muted); }
+    .legend { display: flex; flex-direction: column; gap: 8px; }
+    .legend-item { display: flex; align-items: center; justify-content: space-between; font-size: 0.85em; }
+    .legend-item .swatch-name { display: flex; align-items: center; gap: 8px; }
+    .swatch { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+    .legend-item .val { color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+
+    .map-panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin-bottom: 26px; }
+    #worldMap { width: 100%; height: auto; display: block; }
+    #worldMap path { stroke: var(--bg); stroke-width: 0.5; cursor: default; transition: opacity 0.15s; }
+    #worldMap path:hover { opacity: 0.75; }
+    .map-scale { display: flex; align-items: center; gap: 8px; margin-top: 14px; font-size: 0.78em; color: var(--muted); }
+    .map-scale-bar { flex: 1; height: 8px; border-radius: 4px; background: linear-gradient(to right, #fde3c4, #b3550a); max-width: 260px; }
+
+    .bucket-panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin-bottom: 26px; }
+    .bucket-row { display: grid; grid-template-columns: 130px 32px 1fr; gap: 14px; align-items: start; padding: 9px 0; border-bottom: 1px solid var(--line); }
+    .bucket-row:last-child { border-bottom: none; }
+    .bucket-label { font-size: 0.85em; font-weight: 700; color: var(--text); }
+    .bucket-count { font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: var(--amber); text-align: center; }
+    .bucket-countries { font-size: 0.83em; color: var(--muted); line-height: 1.5; }
+
+    .list-panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin-bottom: 26px; }
+    .country-row { display: grid; grid-template-columns: 1fr 130px 90px 60px; align-items: center; gap: 10px; padding: 9px 4px; border-bottom: 1px solid var(--line); font-size: 0.88em; }
+    .country-row:last-child { border-bottom: none; }
+    .country-row .name-cell { display: flex; align-items: center; gap: 8px; }
+    .country-row select { background: var(--bg); border: 1px solid var(--line); color: var(--text); font-family: inherit; font-size: 0.82em; padding: 5px 6px; border-radius: 6px; }
+    .country-row .days-cell { font-family: 'JetBrains Mono', monospace; color: var(--teal); text-align: right; font-size: 0.88em; }
+    .country-row .pct-cell { color: var(--muted); text-align: right; font-size: 0.82em; }
+    .row-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+    .list-head { display: grid; grid-template-columns: 1fr 130px 90px 60px; gap: 10px; padding: 0 4px 8px; font-size: 0.72em; color: var(--muted); border-bottom: 1px solid var(--line); margin-bottom: 4px; }
+
+    .logged-panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+    .logged-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 4px; border-bottom: 1px solid var(--line); font-size: 0.88em; }
+    .logged-row:last-child { border-bottom: none; }
+    .logged-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .logged-dates { color: var(--muted); font-size: 0.85em; }
+    .del-btn { background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 7px; padding: 4px 10px; font-size: 0.8em; cursor: pointer; font-family: inherit; }
+    .del-btn:hover { border-color: var(--coral); color: var(--coral); }
+    .empty { text-align: center; color: var(--muted); padding: 24px 0; font-size: 0.88em; }
+
+    @media (max-width: 860px) {
+        .main-grid { grid-template-columns: 1fr; }
+        .stat-strip { grid-template-columns: 1fr 1fr; }
+        .stat:nth-child(2n) { border-right: none; }
+        #travelForm { grid-template-columns: 1fr 1fr; }
+        .add-btn { grid-column: 1 / -1; }
+        .country-row, .list-head { grid-template-columns: 1fr 90px 50px; }
+        .country-row select { display: none; }
+        .bucket-row { grid-template-columns: 100px 26px 1fr; }
+    }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+    <header>
+        <h1>Travel Log</h1>
+        <div class="now-badge"><span class="dot"></span>Ora sei in <strong id="currentCountry">—</strong></div>
+    </header>
+
+    <div class="quick-add">
+        <div class="quick-add-title">Registra un viaggio</div>
+        <div class="quick-add-hint">Il paese digitato viene aggiunto al totale corrispondente; la Spagna si aggiorna da sola come base di riferimento.</div>
+        <form id="travelForm">
+            <div class="field">
+                <label for="country">Paese</label>
+                <input type="text" id="country" list="countryList" placeholder="Inizia a digitare..." required autocomplete="off">
+                <datalist id="countryList"></datalist>
+            </div>
+            <div class="field">
+                <label for="startDate">Data inizio</label>
+                <input type="date" id="startDate" required>
+            </div>
+            <div class="field">
+                <label for="endDate">Data fine</label>
+                <input type="date" id="endDate" required>
+            </div>
+            <button type="submit" class="add-btn">Aggiungi</button>
+        </form>
+    </div>
+
+    <div class="stat-strip">
+        <div class="stat">
+            <div class="stat-value" id="lifeDays">0</div>
+            <div class="stat-label">giorni di vita</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value teal" id="totalCountries">0</div>
+            <div class="stat-label">paesi visitati</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value" id="pctItalia">0%</div>
+            <div class="stat-label">vita in Italia</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value" id="pctSpagna">0%</div>
+            <div class="stat-label">vita in Spagna</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value teal" id="worldPercent">0%</div>
+            <div class="stat-label">del mondo visitato</div>
+        </div>
+    </div>
+
+    <div class="main-grid">
+        <div class="panel">
+            <div class="section-head">
+                <h2>Tempo per paese</h2>
+                <div class="unit-toggle" id="unitToggle">
+                    <button data-unit="days" class="active">giorni</button>
+                    <button data-unit="months">mesi</button>
+                    <button data-unit="years">anni</button>
+                </div>
+            </div>
+            <div id="barList"></div>
+        </div>
+        <div class="panel">
+            <h2 style="margin-bottom:14px;">Per continente</h2>
+            <div class="donut-wrap">
+                <canvas id="continentDonut"></canvas>
+                <div class="donut-center"><div class="num" id="donutTotal">0</div><div class="lbl">continenti</div></div>
+            </div>
+            <div class="legend" id="continentLegend"></div>
+        </div>
+    </div>
+
+    <div class="map-panel">
+        <div class="section-head"><h2>Mappa dei paesi visitati</h2></div>
+        <div class="section-note">Colore più intenso = posizione più alta in classifica per tempo trascorso (non giorni assoluti).</div>
+        <svg id="worldMap" viewBox="0 0 960 500"></svg>
+        <div class="map-scale">
+            <span>meno visitato</span>
+            <div class="map-scale-bar"></div>
+            <span>più visitato</span>
+        </div>
+    </div>
+
+    <div class="bucket-panel">
+        <div class="section-head"><h2>Categorie per durata di permanenza</h2></div>
+        <div id="bucketList"></div>
+    </div>
+
+    <div class="list-panel">
+        <div class="section-head"><h2>Elenco paesi</h2></div>
+        <div class="section-note">La categoria è un punto di partenza: modificala liberamente, resta salvata sul tuo dispositivo.</div>
+        <div class="list-head"><span>Paese</span><span>Categoria</span><span style="text-align:right;">Tempo</span><span style="text-align:right;">% vita</span></div>
+        <div id="countryTable"></div>
+    </div>
+
+    <div class="logged-panel">
+        <h2 style="margin-bottom:10px;">Viaggi registrati di recente</h2>
+        <div id="loggedList"></div>
+    </div>
+
+</div>
+
+<script>
+    /* ================= DATI DI BASE (dal file Excel) ================= */
+    const BIRTHDATE = '1977-07-02';
+    const TOTAL_WORLD_COUNTRIES = 195;
+    const STORAGE_TRIPS = 'travelTrackerExtraTrips';
+    const STORAGE_CATS = 'travelTrackerCategoryOverrides';
+
+    const CONTINENT_COLORS = {
+        'Europa': '#F5A623', 'Asia': '#43C6AC', 'Africa': '#E4572E',
+        'Nord America': '#4C86C6', 'Sud America': '#8BC34A', 'Oceania': '#B98BD9',
+        'Altro': '#7E90A8'
+    };
+
+    // Paesi con dati reali (giorni), continente, categoria di base, codice ISO numerico (per la mappa)
+    // 'Spagna' ha baseDays = null: viene calcolata come resto (età odierna - somma di tutti gli altri)
+    const COUNTRIES = [
+        { name: 'Italia', continent: 'Europa', category: 'vissuto', iso: 380, baseDays: 10169 },
+        { name: 'Spagna', continent: 'Europa', category: 'vissuto', iso: 724, baseDays: null },
+        { name: 'Brasile', continent: 'Sud America', category: 'vissuto', iso: 76, baseDays: 750 },
+        { name: 'Sierra Leone', continent: 'Africa', category: 'vissuto', iso: 694, baseDays: 330 },
+        { name: 'Marocco', continent: 'Africa', category: 'vissuto', iso: 504, baseDays: 330 },
+        { name: 'Francia', continent: 'Europa', category: 'viaggiato', iso: 250, baseDays: 183 },
+        { name: 'Angola', continent: 'Africa', category: 'viaggiato', iso: 24, baseDays: 180 },
+        { name: 'Israele', continent: 'Asia', category: 'viaggiato', iso: 376, baseDays: 97.5 },
+        { name: 'Mozambico', continent: 'Africa', category: 'viaggiato', iso: 508, baseDays: 90 },
+        { name: 'Regno Unito', continent: 'Europa', category: 'viaggiato', iso: 826, baseDays: 75 },
+        { name: 'Portogallo', continent: 'Europa', category: 'viaggiato', iso: 620, baseDays: 39 },
+        { name: 'India', continent: 'Asia', category: 'viaggiato', iso: 356, baseDays: 30 },
+        { name: 'Tanzania', continent: 'Africa', category: 'viaggiato', iso: 834, baseDays: 30 },
+        { name: 'Polonia', continent: 'Europa', category: 'viaggiato', iso: 616, baseDays: 25 },
+        { name: 'Irlanda', continent: 'Europa', category: 'viaggiato', iso: 372, baseDays: 20 },
+        { name: 'Croazia', continent: 'Europa', category: 'viaggiato', iso: 191, baseDays: 20 },
+        { name: 'Stati Uniti', continent: 'Nord America', category: 'viaggiato', iso: 840, baseDays: 15 },
+        { name: 'Germania', continent: 'Europa', category: 'viaggiato', iso: 276, baseDays: 15 },
+        { name: 'Belgio', continent: 'Europa', category: 'viaggiato', iso: 56, baseDays: 13 },
+        { name: 'Olanda', continent: 'Europa', category: 'viaggiato', iso: 528, baseDays: 11 },
+        { name: 'Ungheria', continent: 'Europa', category: 'viaggiato', iso: 348, baseDays: 10 },
+        { name: 'Lituania', continent: 'Europa', category: 'viaggiato', iso: 440, baseDays: 7 },
+        { name: 'Namibia', continent: 'Africa', category: 'viaggiato', iso: 516, baseDays: 6 },
+        { name: 'Svezia', continent: 'Europa', category: 'viaggiato', iso: 752, baseDays: 6 },
+        { name: 'Norvegia', continent: 'Europa', category: 'viaggiato', iso: 578, baseDays: 5 },
+        { name: 'Slovenia', continent: 'Europa', category: 'viaggiato', iso: 705, baseDays: 5 },
+        { name: 'Giordania', continent: 'Asia', category: 'viaggiato', iso: 400, baseDays: 4 },
+        { name: 'Malta', continent: 'Europa', category: 'viaggiato', iso: 470, baseDays: 4 },
+        { name: 'Sud Africa', continent: 'Africa', category: 'viaggiato', iso: 710, baseDays: 3 },
+        { name: 'Danimarca', continent: 'Europa', category: 'viaggiato', iso: 208, baseDays: 3 },
+        { name: 'Svizzera', continent: 'Europa', category: 'viaggiato', iso: 756, baseDays: 3 },
+        { name: 'Argentina', continent: 'Sud America', category: 'viaggiato', iso: 32, baseDays: 2 },
+        { name: 'Lettonia', continent: 'Europa', category: 'viaggiato', iso: 428, baseDays: 1.5 },
+        { name: 'Etiopia', continent: 'Africa', category: 'viaggiato', iso: 231, baseDays: 0.36 },
+        { name: 'Qatar', continent: 'Asia', category: 'viaggiato', iso: 634, baseDays: 0.333333 },
+        { name: 'San Marino', continent: 'Europa', category: 'viaggiato', iso: 674, baseDays: 0.25 },
+        { name: 'Andorra', continent: 'Europa', category: 'viaggiato', iso: 20, baseDays: 0.208333 },
+        { name: 'Turchia', continent: 'Asia', category: 'viaggiato', iso: 792, baseDays: 0.166667 },
+        { name: 'Città del Vaticano', continent: 'Europa', category: 'viaggiato', iso: 336, baseDays: 0.125 },
+        { name: 'Liberia', continent: 'Africa', category: 'viaggiato', iso: 430, baseDays: 0.083333 },
+        { name: 'Gambia', continent: 'Africa', category: 'viaggiato', iso: 270, baseDays: 0.083333 },
+        { name: 'Austria', continent: 'Europa', category: 'viaggiato', iso: 40, baseDays: 0.041667 },
+        { name: 'Romania', continent: 'Europa', category: 'viaggiato', iso: 642, baseDays: 0.02 },
+        { name: 'Bosnia', continent: 'Europa', category: 'viaggiato', iso: 70, baseDays: 0.013889 },
+        { name: 'Slovacchia', continent: 'Europa', category: 'viaggiato', iso: 703, baseDays: 0.006944 },
+    ];
+
+    // Elenco esteso di paesi (per l'autocomplete) con continente, usato anche per i nuovi paesi aggiunti
+    const WORLD_CONTINENTS = {
+        'Italia':'Europa','Spagna':'Europa','Francia':'Europa','Germania':'Europa','Regno Unito':'Europa','Portogallo':'Europa','Irlanda':'Europa','Belgio':'Europa','Olanda':'Europa','Lussemburgo':'Europa','Svizzera':'Europa','Austria':'Europa','Polonia':'Europa','Cechia':'Europa','Slovacchia':'Europa','Ungheria':'Europa','Slovenia':'Europa','Croazia':'Europa','Bosnia':'Europa','Serbia':'Europa','Montenegro':'Europa','Macedonia del Nord':'Europa','Albania':'Europa','Kosovo':'Europa','Grecia':'Europa','Bulgaria':'Europa','Romania':'Europa','Moldova':'Europa','Ucraina':'Europa','Bielorussia':'Europa','Russia':'Europa','Lituania':'Europa','Lettonia':'Europa','Estonia':'Europa','Finlandia':'Europa','Svezia':'Europa','Norvegia':'Europa','Danimarca':'Europa','Islanda':'Europa','Malta':'Europa','Cipro':'Europa','San Marino':'Europa','Città del Vaticano':'Europa','Andorra':'Europa','Monaco':'Europa','Liechtenstein':'Europa',
+        'Cina':'Asia','Giappone':'Asia','Corea del Sud':'Asia','Corea del Nord':'Asia','India':'Asia','Pakistan':'Asia','Bangladesh':'Asia','Sri Lanka':'Asia','Nepal':'Asia','Bhutan':'Asia','Myanmar':'Asia','Thailandia':'Asia','Vietnam':'Asia','Laos':'Asia','Cambogia':'Asia','Malesia':'Asia','Singapore':'Asia','Indonesia':'Asia','Filippine':'Asia','Brunei':'Asia','Timor Est':'Asia','Mongolia':'Asia','Kazakistan':'Asia','Uzbekistan':'Asia','Turkmenistan':'Asia','Kirghizistan':'Asia','Tagikistan':'Asia','Afghanistan':'Asia','Iran':'Asia','Iraq':'Asia','Siria':'Asia','Libano':'Asia','Israele':'Asia','Palestina':'Asia','Giordania':'Asia','Arabia Saudita':'Asia','Yemen':'Asia','Oman':'Asia','Emirati Arabi Uniti':'Asia','Qatar':'Asia','Bahrein':'Asia','Kuwait':'Asia','Turchia':'Asia','Georgia':'Asia','Armenia':'Asia','Azerbaigian':'Asia','Taiwan':'Asia','Hong Kong':'Asia',
+        'Marocco':'Africa','Algeria':'Africa','Tunisia':'Africa','Libia':'Africa','Egitto':'Africa','Sudan':'Africa','Sud Sudan':'Africa','Etiopia':'Africa','Eritrea':'Africa','Gibuti':'Africa','Somalia':'Africa','Kenya':'Africa','Uganda':'Africa','Tanzania':'Africa','Ruanda':'Africa','Burundi':'Africa','Repubblica Democratica del Congo':'Africa','Repubblica del Congo':'Africa','Gabon':'Africa','Guinea Equatoriale':'Africa','Camerun':'Africa','Repubblica Centrafricana':'Africa','Ciad':'Africa','Niger':'Africa','Nigeria':'Africa','Benin':'Africa','Togo':'Africa','Ghana':'Africa',"Costa d'Avorio":'Africa','Liberia':'Africa','Sierra Leone':'Africa','Guinea':'Africa','Guinea-Bissau':'Africa','Senegal':'Africa','Gambia':'Africa','Mauritania':'Africa','Mali':'Africa','Burkina Faso':'Africa','Capo Verde':'Africa','São Tomé e Príncipe':'Africa','Angola':'Africa','Zambia':'Africa','Malawi':'Africa','Mozambico':'Africa','Zimbabwe':'Africa','Botswana':'Africa','Namibia':'Africa','Sud Africa':'Africa','Lesotho':'Africa','Eswatini':'Africa','Madagascar':'Africa','Mauritius':'Africa','Seychelles':'Africa','Comore':'Africa',
+        'Stati Uniti':'Nord America','Canada':'Nord America','Messico':'Nord America','Groenlandia':'Nord America','Guatemala':'Nord America','Belize':'Nord America','Honduras':'Nord America','El Salvador':'Nord America','Nicaragua':'Nord America','Costa Rica':'Nord America','Panama':'Nord America','Cuba':'Nord America','Giamaica':'Nord America','Haiti':'Nord America','Repubblica Dominicana':'Nord America','Bahamas':'Nord America','Trinidad e Tobago':'Nord America','Barbados':'Nord America',
+        'Brasile':'Sud America','Argentina':'Sud America','Cile':'Sud America','Perù':'Sud America','Colombia':'Sud America','Venezuela':'Sud America','Ecuador':'Sud America','Bolivia':'Sud America','Paraguay':'Sud America','Uruguay':'Sud America','Guyana':'Sud America','Suriname':'Sud America',
+        'Australia':'Oceania','Nuova Zelanda':'Oceania','Papua Nuova Guinea':'Oceania','Figi':'Oceania','Samoa':'Oceania','Tonga':'Oceania','Vanuatu':'Oceania','Isole Salomone':'Oceania','Kiribati':'Oceania','Palau':'Oceania','Micronesia':'Oceania','Isole Marshall':'Oceania','Nauru':'Oceania','Tuvalu':'Oceania'
+    };
+
+    const DURATION_BUCKETS = [
+        { key: '10y', label: '10+ anni', min: 3650 },
+        { key: '5y', label: '5+ anni', min: 1825 },
+        { key: '1y', label: '1+ anno', min: 365 },
+        { key: '6m', label: '6+ mesi', min: 182 },
+        { key: '3m', label: '3+ mesi', min: 90 },
+        { key: '1m', label: '1+ mese', min: 30 },
+        { key: '15d', label: '15+ giorni', min: 15 },
+        { key: '7d', label: '7+ giorni', min: 7 },
+        { key: '3d', label: '3+ giorni', min: 3 },
+        { key: '1d', label: '1+ giorno', min: 1 },
+        { key: 'h', label: 'Poche ore', min: 0 },
+    ];
+
+    const CATEGORY_LABELS = { vissuto: 'Vissuto / lavorato', viaggiato: 'Viaggiato', attraversato: 'Solo attraversato', confine: 'Visto dal confine' };
+
+    /* ================= STATO ================= */
+    let extraTrips = [];       // viaggi registrati dall'utente: {country, startDate, endDate, days}
+    let categoryOverrides = {};
+    let currentUnit = 'days';
+    let donutChart = null;
+    let mapRendered = false;
+
+    /* ================= UTILITY ================= */
+    function daysBetween(start, end) {
+        const diff = (new Date(end + 'T00:00:00') - new Date(start + 'T00:00:00')) / 86400000;
+        return Math.max(0, Math.round(diff) + 1);
+    }
+    function todayStr() {
+        const d = new Date();
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+    function lifeDaysToday() {
+        const diff = (new Date(todayStr() + 'T00:00:00') - new Date(BIRTHDATE + 'T00:00:00')) / 86400000;
+        return Math.floor(diff);
+    }
+    function convertUnit(days, unit) {
+        const c = { days: days, months: days / 30.44, years: days / 365.25 };
+        return c[unit] !== undefined ? c[unit] : days;
+    }
+    function formatUnit(value, unit) {
+        const labels = { days: 'gg', months: 'mesi', years: 'anni' };
+        return `${value.toFixed(1)} ${labels[unit]}`;
+    }
+    function continentColor(cont) { return CONTINENT_COLORS[cont] || CONTINENT_COLORS['Altro']; }
+    function continentOf(name) {
+        const base = COUNTRIES.find(c => c.name === name);
+        if (base) return base.continent;
+        return WORLD_CONTINENTS[name] || 'Altro';
+    }
+    function categoryOf(name) {
+        if (categoryOverrides[name]) return categoryOverrides[name];
+        const base = COUNTRIES.find(c => c.name === name);
+        return base ? base.category : 'viaggiato';
+    }
+    function formatDate(iso) { return new Date(iso + 'T00:00:00').toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' }); }
+
+    /* ================= PERSISTENZA ================= */
+    function loadState() {
+        try { extraTrips = JSON.parse(localStorage.getItem(STORAGE_TRIPS)) || []; } catch (e) { extraTrips = []; }
+        try { categoryOverrides = JSON.parse(localStorage.getItem(STORAGE_CATS)) || {}; } catch (e) { categoryOverrides = {}; }
+    }
+    function saveTrips() { try { localStorage.setItem(STORAGE_TRIPS, JSON.stringify(extraTrips)); } catch (e) {} }
+    function saveCategories() { try { localStorage.setItem(STORAGE_CATS, JSON.stringify(categoryOverrides)); } catch (e) {} }
+
+    /* ================= AGGREGAZIONE DATI ================= */
+    function extraDaysByCountry() {
+        const map = {};
+        extraTrips.forEach(t => { map[t.country] = (map[t.country] || 0) + t.days; });
+        return map;
+    }
+
+    // Restituisce { name -> giorni totali } per tutti i paesi noti (base excel + eventuali nuovi da viaggi registrati)
+    function computeTotals() {
+        const extra = extraDaysByCountry();
+        const totals = {};
+        const names = new Set(COUNTRIES.map(c => c.name));
+        Object.keys(extra).forEach(n => names.add(n));
+
+        let sumOthers = 0;
+        names.forEach(name => {
+            if (name === 'Spagna') return;
+            const base = COUNTRIES.find(c => c.name === name);
+            const baseDays = base ? (base.baseDays || 0) : 0;
+            const extraDays = extra[name] || 0;
+            const total = baseDays + extraDays;
+            totals[name] = total;
+            sumOthers += total;
+        });
+        totals['Spagna'] = Math.max(0, lifeDaysToday() - sumOthers);
+        return totals;
+    }
+
+    function sortedTotals() {
+        const totals = computeTotals();
+        return Object.entries(totals).sort((a, b) => b[1] - a[1]);
+    }
+
+    /* ================= RENDER: STATISTICHE ================= */
+    function renderStats() {
+        const totals = computeTotals();
+        const life = lifeDaysToday();
+        const countryCount = Object.keys(totals).filter(n => totals[n] > 0).length;
+        const italiaDays = totals['Italia'] || 0;
+        const spagnaDays = totals['Spagna'] || 0;
+
+        document.getElementById('lifeDays').textContent = life.toLocaleString('it-IT');
+        document.getElementById('totalCountries').textContent = countryCount;
+        document.getElementById('pctItalia').textContent = ((italiaDays / life) * 100).toFixed(1) + '%';
+        document.getElementById('pctSpagna').textContent = ((spagnaDays / life) * 100).toFixed(1) + '%';
+        document.getElementById('worldPercent').textContent = ((countryCount / TOTAL_WORLD_COUNTRIES) * 100).toFixed(1) + '%';
+        document.getElementById('currentCountry').textContent = getCurrentCountry();
+    }
+
+    function getCurrentCountry() {
+        const t = todayStr();
+        const active = extraTrips.filter(tr => tr.startDate <= t && t <= tr.endDate);
+        if (active.length) {
+            active.sort((a, b) => b.startDate.localeCompare(a.startDate));
+            return active[0].country;
+        }
+        return 'Spagna';
+    }
+
+    /* ================= RENDER: BARRE PER PAESE ================= */
+    function renderBarList() {
+        const entries = sortedTotals().filter(([, d]) => d > 0);
+        const max = entries.length ? entries[0][1] : 1;
+        const el = document.getElementById('barList');
+        if (!entries.length) { el.innerHTML = '<div class="empty">Nessun dato</div>'; return; }
+        el.innerHTML = entries.map(([name, days]) => {
+            const cont = continentOf(name);
+            const pct = Math.max(2, (days / max) * 100);
+            const cat = categoryOf(name);
+            const flag = cat === 'vissuto' ? '● vissuto' : '';
+            return `
+                <div class="bar-row">
+                    <div class="country-name">${name}${flag ? `<span class="cat-flag">${flag}</span>` : ''}</div>
+                    <div class="bar-track"><div class="bar-fill" style="width:${pct}%; background:${continentColor(cont)}"></div></div>
+                    <div class="value">${formatUnit(convertUnit(days, currentUnit), currentUnit)}</div>
+                </div>`;
+        }).join('');
+    }
+
+    /* ================= RENDER: DONUT CONTINENTI ================= */
+    function renderDonut() {
+        const totals = computeTotals();
+        const byCont = {};
+        Object.entries(totals).forEach(([name, days]) => {
+            if (days <= 0) return;
+            const c = continentOf(name);
+            byCont[c] = (byCont[c] || 0) + days;
+        });
+        const entries = Object.entries(byCont).sort((a, b) => b[1] - a[1]);
+        const labels = entries.map(e => e[0]);
+        const values = entries.map(e => e[1]);
+        const colors = labels.map(l => continentColor(l));
+
+        if (donutChart) donutChart.destroy();
+        donutChart = new Chart(document.getElementById('continentDonut'), {
+            type: 'doughnut',
+            data: { labels, datasets: [{ data: values, backgroundColor: colors, borderColor: '#121F30', borderWidth: 3 }] },
+            options: {
+                cutout: '68%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${formatUnit(convertUnit(ctx.parsed, currentUnit), currentUnit)}` } }
+                }
+            }
+        });
+        document.getElementById('donutTotal').textContent = labels.length;
+
+        const legend = document.getElementById('continentLegend');
+        legend.innerHTML = entries.map(([cont, days]) => `
+            <div class="legend-item">
+                <span class="swatch-name"><span class="swatch" style="background:${continentColor(cont)}"></span>${cont}</span>
+                <span class="val">${formatUnit(convertUnit(days, currentUnit), currentUnit)}</span>
+            </div>`).join('');
+    }
+
+    /* ================= RENDER: MAPPA MONDO ================= */
+    async function renderMap() {
+        const totals = computeTotals();
+        const ranked = Object.entries(totals).filter(([, d]) => d > 0).sort((a, b) => b[1] - a[1]);
+        const rankByName = {}; ranked.forEach(([name], i) => rankByName[name] = i);
+        const N = ranked.length;
+        const isoByName = {}; COUNTRIES.forEach(c => { if (c.iso) isoByName[c.name] = String(c.iso); });
+
+        function colorForName(name) {
+            if (!(name in rankByName)) return null;
+            const t = N <= 1 ? 1 : 1 - (rankByName[name] / (N - 1));
+            return d3.interpolateOranges(0.22 + 0.68 * t);
+        }
+
+        const svg = d3.select('#worldMap');
+        svg.selectAll('*').remove();
+
+        let world;
+        try {
+            world = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+        } catch (e) {
+            svg.append('text').attr('x', 480).attr('y', 250).attr('text-anchor', 'middle')
+                .attr('fill', '#7E90A8').attr('font-size', '14').text('Mappa non disponibile senza connessione internet');
+            return;
+        }
+        const countries = topojson.feature(world, world.objects.countries);
+        const projection = d3.geoNaturalEarth1().fitSize([960, 500], countries);
+        const path = d3.geoPath(projection);
+
+        const isoToName = {};
+        Object.entries(isoByName).forEach(([name, iso]) => { isoToName[iso] = name; });
+
+        svg.selectAll('path')
+            .data(countries.features)
+            .join('path')
+            .attr('d', path)
+            .attr('fill', d => {
+                const name = isoToName[String(d.id)];
+                const c = name ? colorForName(name) : null;
+                return c || 'var(--panel-raised)';
+            })
+            .append('title')
+            .text(d => {
+                const name = isoToName[String(d.id)];
+                if (!name || !(name in rankByName)) return d.properties && d.properties.name || '';
+                const days = totals[name];
+                return `${name}: ${Math.round(days).toLocaleString('it-IT')} giorni (posizione #${rankByName[name] + 1})`;
+            });
+    }
+
+    /* ================= RENDER: CATEGORIE PER DURATA ================= */
+    function renderBuckets() {
+        const totals = computeTotals();
+        const entries = Object.entries(totals).filter(([, d]) => d > 0);
+        const buckets = {};
+        DURATION_BUCKETS.forEach(b => buckets[b.key] = []);
+
+        entries.forEach(([name, days]) => {
+            for (const b of DURATION_BUCKETS) {
+                if (days >= b.min) { buckets[b.key].push(name); break; }
+            }
+        });
+
+        const el = document.getElementById('bucketList');
+        el.innerHTML = DURATION_BUCKETS.filter(b => buckets[b.key].length).map(b => `
+            <div class="bucket-row">
+                <div class="bucket-label">${b.label}</div>
+                <div class="bucket-count">${buckets[b.key].length}</div>
+                <div class="bucket-countries">${buckets[b.key].join(', ')}</div>
+            </div>`).join('');
+    }
+
+    /* ================= RENDER: ELENCO PAESI ================= */
+    function renderCountryTable() {
+        const totals = computeTotals();
+        const life = lifeDaysToday();
+        const entries = Object.entries(totals).filter(([, d]) => d > 0).sort((a, b) => b[1] - a[1]);
+        const el = document.getElementById('countryTable');
+        if (!entries.length) { el.innerHTML = '<div class="empty">Nessun dato</div>'; return; }
+        el.innerHTML = entries.map(([name, days]) => {
+            const cont = continentOf(name);
+            const cat = categoryOf(name);
+            const pct = ((days / life) * 100);
+            const pctStr = pct < 0.01 ? '<0.01%' : pct.toFixed(2) + '%';
+            const options = Object.entries(CATEGORY_LABELS).map(([val, lbl]) =>
+                `<option value="${val}" ${val === cat ? 'selected' : ''}>${lbl}</option>`).join('');
+            return `
+                <div class="country-row">
+                    <div class="name-cell"><span class="row-dot" style="background:${continentColor(cont)}"></span>${name}</div>
+                    <select onchange="setCategory('${name.replace(/'/g, "\\'")}', this.value)">${options}</select>
+                    <div class="days-cell">${Math.round(days).toLocaleString('it-IT')} gg</div>
+                    <div class="pct-cell">${pctStr}</div>
+                </div>`;
+        }).join('');
+    }
+
+    function setCategory(name, value) {
+        categoryOverrides[name] = value;
+        saveCategories();
+        renderBarList();
+    }
+
+    /* ================= RENDER: VIAGGI REGISTRATI ================= */
+    function renderLoggedList() {
+        const el = document.getElementById('loggedList');
+        if (!extraTrips.length) { el.innerHTML = '<div class="empty">Nessun viaggio registrato ancora — usa il modulo in alto.</div>'; return; }
+        const rows = extraTrips.map((t, idx) => ({ ...t, idx })).sort((a, b) => b.startDate.localeCompare(a.startDate));
+        el.innerHTML = rows.map(t => `
+            <div class="logged-row">
+                <div class="logged-left">
+                    <span class="row-dot" style="background:${continentColor(continentOf(t.country))}"></span>
+                    <strong>${t.country}</strong>
+                    <span class="logged-dates">${formatDate(t.startDate)} → ${formatDate(t.endDate)} (${t.days} gg)</span>
+                </div>
+                <button class="del-btn" onclick="deleteTrip(${t.idx})">Elimina</button>
+            </div>`).join('');
+    }
+
+    function deleteTrip(idx) {
+        extraTrips.splice(idx, 1);
+        saveTrips();
+        renderAll();
+    }
+
+    /* ================= INIZIALIZZAZIONE FORM ================= */
+    function populateDatalist() {
+        const names = new Set([...COUNTRIES.map(c => c.name), ...Object.keys(WORLD_CONTINENTS)]);
+        const dl = document.getElementById('countryList');
+        dl.innerHTML = [...names].sort((a, b) => a.localeCompare(b, 'it')).map(n => `<option value="${n}">`).join('');
+    }
+
+    document.getElementById('travelForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const country = document.getElementById('country').value.trim();
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        if (!country || !startDate || !endDate) return;
+        if (endDate < startDate) { alert('La data di fine non può precedere la data di inizio.'); return; }
+        if (country === 'Spagna') { alert('La Spagna si calcola automaticamente come base di riferimento: non serve registrarla.'); return; }
+        const days = daysBetween(startDate, endDate);
+        extraTrips.push({ country, startDate, endDate, days });
+        saveTrips();
+        renderAll();
+        e.target.reset();
+    });
+
+    document.getElementById('unitToggle').addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        document.querySelectorAll('#unitToggle button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentUnit = btn.dataset.unit;
+        renderBarList();
+        renderDonut();
+    });
+
+    /* ================= AVVIO ================= */
+    function renderAll() {
+        renderStats();
+        renderBarList();
+        renderDonut();
+        renderBuckets();
+        renderCountryTable();
+        renderLoggedList();
+        if (!mapRendered) { mapRendered = true; renderMap(); }
+    }
+
+    loadState();
+    populateDatalist();
+    renderAll();
+</script>
+</body>
+</html>

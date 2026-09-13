@@ -58,12 +58,17 @@
     .add-btn { background: var(--amber); color: #16110A; border: none; padding: 11px 20px; border-radius: 9px; font-weight: 700; font-size: 0.95em; cursor: pointer; white-space: nowrap; transition: filter 0.15s; }
     .add-btn:hover { filter: brightness(1.08); }
 
-    .stat-strip { display: grid; grid-template-columns: repeat(5, 1fr); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; margin-bottom: 30px; }
+    .stat-strip { display: grid; grid-template-columns: repeat(6, 1fr); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; margin-bottom: 30px; }
     .stat { background: var(--panel); padding: 20px 16px; border-right: 1px solid var(--line); }
     .stat:last-child { border-right: none; }
     .stat-value { font-family: 'JetBrains Mono', monospace; font-size: 1.7em; font-weight: 700; color: var(--amber); line-height: 1; }
     .stat-value.teal { color: var(--teal); }
     .stat-label { margin-top: 8px; color: var(--muted); font-size: 0.8em; }
+    .mini-toggle { display: flex; gap: 3px; margin-top: 8px; }
+    .mini-toggle button { background: var(--bg); border: 1px solid var(--line); color: var(--muted); padding: 2px 7px; border-radius: 10px; font-size: 0.68em; font-family: inherit; cursor: pointer; }
+    .mini-toggle button.active { background: var(--amber); color: #16110A; border-color: var(--amber); font-weight: 700; }
+    .tl-controls { display: flex; align-items: center; gap: 14px; margin-top: 14px; }
+    .tl-year-label { font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: var(--text); white-space: nowrap; min-width: 130px; text-align: right; }
 
     .section-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
     .section-head h2 { font-size: 1.05em; font-weight: 700; }
@@ -94,6 +99,8 @@
 
     .map-panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin-bottom: 26px; }
     .big-pie-wrap { max-width: 460px; margin: 0 auto; }
+    .comp-bar { display: flex; height: 26px; border-radius: 8px; overflow: hidden; }
+    .comp-seg { height: 100%; transition: width 0.4s ease; }
     #worldMap { width: 100%; height: auto; display: block; }
     #worldMap path { stroke: var(--bg); stroke-width: 0.5; cursor: default; transition: opacity 0.15s; }
     #worldMap path:hover { opacity: 0.75; }
@@ -172,6 +179,11 @@
         <div class="stat">
             <div class="stat-value" id="lifeDays">0</div>
             <div class="stat-label">giorni di vita</div>
+            <div class="mini-toggle" id="lifeUnitToggle">
+                <button data-unit="days" class="active">gg</button>
+                <button data-unit="months">mesi</button>
+                <button data-unit="years">anni</button>
+            </div>
         </div>
         <div class="stat">
             <div class="stat-value teal" id="totalCountries">0</div>
@@ -189,6 +201,17 @@
             <div class="stat-value teal" id="worldPercent">0%</div>
             <div class="stat-label">del mondo visitato</div>
         </div>
+        <div class="stat">
+            <div class="stat-value" id="fullMoons">0</div>
+            <div class="stat-label">lune piene dalla nascita</div>
+        </div>
+    </div>
+
+    <div class="map-panel">
+        <div class="section-head"><h2>Come si compone la tua vita</h2></div>
+        <div class="section-note">In base alla categoria assegnata a ciascun paese nell'elenco più sotto.</div>
+        <div class="comp-bar" id="compBar"></div>
+        <div class="legend" id="compLegend" style="margin-top:16px;"></div>
     </div>
 
     <div class="main-grid">
@@ -204,19 +227,37 @@
             <div id="barList"></div>
         </div>
         <div class="panel">
-            <h2 style="margin-bottom:14px;">Per continente</h2>
-            <div class="donut-wrap">
-                <canvas id="continentDonut"></canvas>
-                <div class="donut-center"><div class="num" id="donutTotal">0</div><div class="lbl">continenti</div></div>
+            <div class="section-head">
+                <h2>Distribuzione del tempo</h2>
+                <div class="unit-toggle" id="distToggle">
+                    <button data-view="continent" class="active">Continenti</button>
+                    <button data-view="country">Paesi</button>
+                </div>
             </div>
-            <div class="legend" id="continentLegend"></div>
+            <div class="donut-wrap" id="distDonutWrap">
+                <canvas id="distChart"></canvas>
+                <div class="donut-center" id="distCenter"><div class="num" id="distTotal">0</div><div class="lbl" id="distTotalLbl">continenti</div></div>
+            </div>
+            <div class="legend" id="distLegend"></div>
         </div>
     </div>
 
     <div class="map-panel">
-        <div class="section-head"><h2>Distribuzione per paese</h2></div>
-        <div class="section-note">Tutti i paesi, non solo i continenti — raggruppati per continente, colore più scuro dove il tempo è maggiore.</div>
-        <div class="big-pie-wrap"><canvas id="countryPie"></canvas></div>
+        <div class="section-head"><h2>Copertura per continente</h2></div>
+        <div class="section-note">Quanti paesi hai davvero visitato su quelli esistenti in ciascun continente (esclusi attraversati/confine).</div>
+        <div id="continentCoverage"></div>
+    </div>
+
+    <div class="map-panel">
+        <div class="section-head"><h2>Quando hai conosciuto un nuovo paese</h2></div>
+        <div class="section-note" id="timelinePeakNote">In base al file dei movimenti — solo paesi realmente visitati (esclusi attraversati/confine).</div>
+        <div class="big-pie-wrap" style="max-width:100%;"><canvas id="timelineChart"></canvas></div>
+    </div>
+
+    <div class="map-panel">
+        <div class="section-head"><h2>Paesi conosciuti per decade d'età</h2></div>
+        <div class="section-note">L'età che avevi quando hai conosciuto ciascun nuovo paese per la prima volta.</div>
+        <div class="big-pie-wrap"><canvas id="decadePie"></canvas></div>
     </div>
 
     <div class="map-panel">
@@ -227,7 +268,18 @@
             <span>meno visitato</span>
             <div class="map-scale-bar"></div>
             <span>più visitato</span>
-            <span style="display:flex; align-items:center; gap:6px; margin-left:18px;"><span class="swatch" style="background:#6B5B95;"></span>attraversato / confine</span>
+            <span style="display:flex; align-items:center; gap:6px; margin-left:18px;"><span class="swatch" style="background:#3D5A80;"></span>attraversato / confine</span>
+        </div>
+    </div>
+
+    <div class="map-panel">
+        <div class="section-head"><h2>Come si sono aggiunti i paesi nel tempo</h2></div>
+        <div class="section-note">Animazione basata sul file dei movimenti — stessi colori della mappa sopra.</div>
+        <svg id="timelineMap" viewBox="0 0 960 500"></svg>
+        <div class="tl-controls">
+            <button class="add-btn" id="playBtn" style="padding:8px 16px;">▶ Play</button>
+            <input type="range" id="yearSlider" min="1977" max="2026" value="1977" style="flex:1;">
+            <span class="tl-year-label" id="yearLabel">1977 — 0 paesi</span>
         </div>
     </div>
 
@@ -272,46 +324,46 @@
         { name: 'Brasile', continent: 'Sud America', category: 'vissuto', iso: 76, baseDays: 750 },
         { name: 'Sierra Leone', continent: 'Africa', category: 'vissuto', iso: 694, baseDays: 330 },
         { name: 'Marocco', continent: 'Africa', category: 'vissuto', iso: 504, baseDays: 330 },
-        { name: 'Francia', continent: 'Europa', category: 'viaggiato', iso: 250, baseDays: 183 },
-        { name: 'Angola', continent: 'Africa', category: 'viaggiato', iso: 24, baseDays: 180 },
-        { name: 'Israele', continent: 'Asia', category: 'viaggiato', iso: 376, baseDays: 97.5 },
-        { name: 'Mozambico', continent: 'Africa', category: 'viaggiato', iso: 508, baseDays: 90 },
-        { name: 'Regno Unito', continent: 'Europa', category: 'viaggiato', iso: 826, baseDays: 75 },
-        { name: 'Portogallo', continent: 'Europa', category: 'viaggiato', iso: 620, baseDays: 39 },
-        { name: 'India', continent: 'Asia', category: 'viaggiato', iso: 356, baseDays: 30 },
-        { name: 'Tanzania', continent: 'Africa', category: 'viaggiato', iso: 834, baseDays: 30 },
-        { name: 'Polonia', continent: 'Europa', category: 'viaggiato', iso: 616, baseDays: 25 },
-        { name: 'Irlanda', continent: 'Europa', category: 'viaggiato', iso: 372, baseDays: 20 },
-        { name: 'Croazia', continent: 'Europa', category: 'viaggiato', iso: 191, baseDays: 20 },
-        { name: 'Stati Uniti', continent: 'Nord America', category: 'viaggiato', iso: 840, baseDays: 15 },
-        { name: 'Germania', continent: 'Europa', category: 'viaggiato', iso: 276, baseDays: 15 },
-        { name: 'Belgio', continent: 'Europa', category: 'viaggiato', iso: 56, baseDays: 13 },
-        { name: 'Olanda', continent: 'Europa', category: 'viaggiato', iso: 528, baseDays: 11 },
-        { name: 'Ungheria', continent: 'Europa', category: 'viaggiato', iso: 348, baseDays: 10 },
-        { name: 'Lituania', continent: 'Europa', category: 'viaggiato', iso: 440, baseDays: 7 },
-        { name: 'Namibia', continent: 'Africa', category: 'viaggiato', iso: 516, baseDays: 6 },
-        { name: 'Svezia', continent: 'Europa', category: 'viaggiato', iso: 752, baseDays: 6 },
-        { name: 'Norvegia', continent: 'Europa', category: 'viaggiato', iso: 578, baseDays: 5 },
-        { name: 'Slovenia', continent: 'Europa', category: 'viaggiato', iso: 705, baseDays: 5 },
-        { name: 'Giordania', continent: 'Asia', category: 'viaggiato', iso: 400, baseDays: 4 },
-        { name: 'Malta', continent: 'Europa', category: 'viaggiato', iso: 470, baseDays: 4 },
-        { name: 'Sud Africa', continent: 'Africa', category: 'viaggiato', iso: 710, baseDays: 3 },
-        { name: 'Danimarca', continent: 'Europa', category: 'viaggiato', iso: 208, baseDays: 3 },
-        { name: 'Svizzera', continent: 'Europa', category: 'viaggiato', iso: 756, baseDays: 3 },
-        { name: 'Argentina', continent: 'Sud America', category: 'viaggiato', iso: 32, baseDays: 2 },
-        { name: 'Lettonia', continent: 'Europa', category: 'viaggiato', iso: 428, baseDays: 1.5 },
+        { name: 'Francia', continent: 'Europa', category: 'visitato', iso: 250, baseDays: 183 },
+        { name: 'Angola', continent: 'Africa', category: 'visitato', iso: 24, baseDays: 180 },
+        { name: 'Israele', continent: 'Asia', category: 'visitato', iso: 376, baseDays: 97.5 },
+        { name: 'Mozambico', continent: 'Africa', category: 'visitato', iso: 508, baseDays: 90 },
+        { name: 'Regno Unito', continent: 'Europa', category: 'visitato', iso: 826, baseDays: 75 },
+        { name: 'Portogallo', continent: 'Europa', category: 'visitato', iso: 620, baseDays: 39 },
+        { name: 'India', continent: 'Asia', category: 'visitato', iso: 356, baseDays: 30 },
+        { name: 'Tanzania', continent: 'Africa', category: 'visitato', iso: 834, baseDays: 30 },
+        { name: 'Polonia', continent: 'Europa', category: 'visitato', iso: 616, baseDays: 25 },
+        { name: 'Irlanda', continent: 'Europa', category: 'visitato', iso: 372, baseDays: 20 },
+        { name: 'Croazia', continent: 'Europa', category: 'visitato', iso: 191, baseDays: 20 },
+        { name: 'Stati Uniti', continent: 'Nord America', category: 'visitato', iso: 840, baseDays: 15 },
+        { name: 'Germania', continent: 'Europa', category: 'visitato', iso: 276, baseDays: 15 },
+        { name: 'Belgio', continent: 'Europa', category: 'visitato', iso: 56, baseDays: 13 },
+        { name: 'Olanda', continent: 'Europa', category: 'visitato', iso: 528, baseDays: 11 },
+        { name: 'Ungheria', continent: 'Europa', category: 'visitato', iso: 348, baseDays: 10 },
+        { name: 'Lituania', continent: 'Europa', category: 'visitato', iso: 440, baseDays: 7 },
+        { name: 'Namibia', continent: 'Africa', category: 'visitato', iso: 516, baseDays: 6 },
+        { name: 'Svezia', continent: 'Europa', category: 'visitato', iso: 752, baseDays: 6 },
+        { name: 'Norvegia', continent: 'Europa', category: 'visitato', iso: 578, baseDays: 5 },
+        { name: 'Slovenia', continent: 'Europa', category: 'visitato', iso: 705, baseDays: 5 },
+        { name: 'Giordania', continent: 'Asia', category: 'visitato', iso: 400, baseDays: 4 },
+        { name: 'Malta', continent: 'Europa', category: 'visitato', iso: 470, baseDays: 4 },
+        { name: 'Sud Africa', continent: 'Africa', category: 'visitato', iso: 710, baseDays: 3 },
+        { name: 'Danimarca', continent: 'Europa', category: 'visitato', iso: 208, baseDays: 3 },
+        { name: 'Svizzera', continent: 'Europa', category: 'visitato', iso: 756, baseDays: 3 },
+        { name: 'Argentina', continent: 'Sud America', category: 'visitato', iso: 32, baseDays: 2 },
+        { name: 'Lettonia', continent: 'Europa', category: 'visitato', iso: 428, baseDays: 1.5 },
         { name: 'Etiopia', continent: 'Africa', category: 'attraversato', iso: 231, baseDays: 0.36 },
         { name: 'Qatar', continent: 'Asia', category: 'attraversato', iso: 634, baseDays: 0.333333 },
-        { name: 'San Marino', continent: 'Europa', category: 'viaggiato', iso: 674, baseDays: 0.25 },
-        { name: 'Andorra', continent: 'Europa', category: 'viaggiato', iso: 20, baseDays: 0.208333 },
+        { name: 'San Marino', continent: 'Europa', category: 'visitato', iso: 674, baseDays: 0.25 },
+        { name: 'Andorra', continent: 'Europa', category: 'visitato', iso: 20, baseDays: 0.208333 },
         { name: 'Turchia', continent: 'Asia', category: 'attraversato', iso: 792, baseDays: 0.166667 },
-        { name: 'Città del Vaticano', continent: 'Europa', category: 'viaggiato', iso: 336, baseDays: 0.125 },
+        { name: 'Città del Vaticano', continent: 'Europa', category: 'visitato', iso: 336, baseDays: 0.125 },
         { name: 'Liberia', continent: 'Africa', category: 'attraversato', iso: 430, baseDays: 0.083333 },
         { name: 'Gambia', continent: 'Africa', category: 'attraversato', iso: 270, baseDays: 0.083333 },
         { name: 'Austria', continent: 'Europa', category: 'attraversato', iso: 40, baseDays: 0.041667 },
-        { name: 'Romania', continent: 'Europa', category: 'viaggiato', iso: 642, baseDays: 0.02 },
+        { name: 'Romania', continent: 'Europa', category: 'visitato', iso: 642, baseDays: 0.02 },
         { name: 'Bosnia', continent: 'Europa', category: 'attraversato', iso: 70, baseDays: 0.013889 },
-        { name: 'Slovacchia', continent: 'Europa', category: 'attraversato', iso: 703, baseDays: 0.006944 },
+        { name: 'Slovacchia', continent: 'Europa', category: 'confine', iso: 703, baseDays: 0.006944 },
         // Paesi visti dal confine, mai attraversati: 0 giorni, non contano nel tempo totale né nel % mondo visitato
         { name: 'Monaco', continent: 'Europa', category: 'confine', iso: 492, baseDays: 0 },
         { name: 'Algeria', continent: 'Africa', category: 'confine', iso: 12, baseDays: 0 },
@@ -322,6 +374,38 @@
         { name: 'Arabia Saudita', continent: 'Asia', category: 'confine', iso: 682, baseDays: 0 },
         { name: 'Guinea', continent: 'Africa', category: 'confine', iso: 324, baseDays: 0 },
     ];
+
+    // Cronologia di "prima conoscenza" di ciascun paese, dal file vita_geografica_-_MOVIMENTI.xlsx
+    // (anno/mese in cui è comparso per la prima volta, in una qualsiasi delle colonne: nuovo/parziale/attraversato/confine)
+    const FIRST_SEEN = [
+        { name: 'Italia', year: 1977, month: 10 }, { name: 'San Marino', year: 1992, month: 4 },
+        { name: 'Spagna', year: 1997, month: 7 }, { name: 'Francia', year: 2001, month: 1 },
+        { name: 'Svizzera', year: 2002, month: 7 }, { name: 'Marocco', year: 2003, month: 9 },
+        { name: 'Algeria', year: 2003, month: 12 }, { name: 'Belgio', year: 2004, month: 9 },
+        { name: 'Portogallo', year: 2005, month: 3 }, { name: 'Slovenia', year: 2005, month: 8 },
+        { name: 'Croazia', year: 2005, month: 8 }, { name: 'Bosnia', year: 2005, month: 8 },
+        { name: 'Irlanda', year: 2005, month: 12 }, { name: 'Germania', year: 2006, month: 5 },
+        { name: 'Olanda', year: 2006, month: 6 }, { name: 'Danimarca', year: 2006, month: 7 },
+        { name: 'Svezia', year: 2006, month: 8 }, { name: 'Norvegia', year: 2006, month: 9 },
+        { name: 'Austria', year: 2006, month: 10 }, { name: 'Regno Unito', year: 2006, month: 12 },
+        { name: 'Brasile', year: 2008, month: 5 }, { name: 'Argentina', year: 2008, month: 9 },
+        { name: 'Paraguay', year: 2008, month: 9 }, { name: 'Città del Vaticano', year: 2009, month: 3 },
+        { name: 'Angola', year: 2009, month: 9 }, { name: 'Repubblica Democratica del Congo', year: 2009, month: 10 },
+        { name: 'Zambia', year: 2010, month: 9 }, { name: 'Namibia', year: 2010, month: 10 },
+        { name: 'Gambia', year: 2011, month: 8 }, { name: 'Sierra Leone', year: 2011, month: 8 },
+        { name: 'Guinea', year: 2011, month: 11 }, { name: 'Liberia', year: 2012, month: 2 },
+        { name: 'Polonia', year: 2012, month: 9 }, { name: 'India', year: 2012, month: 11 },
+        { name: 'Slovacchia', year: 2013, month: 1 }, { name: 'Mozambico', year: 2013, month: 3 },
+        { name: 'Sud Africa', year: 2013, month: 4 }, { name: 'Etiopia', year: 2013, month: 5 },
+        { name: 'Tanzania', year: 2013, month: 12 }, { name: 'Israele', year: 2014, month: 10 },
+        { name: 'Giordania', year: 2014, month: 10 }, { name: 'Egitto', year: 2014, month: 10 },
+        { name: 'Qatar', year: 2015, month: 12 }, { name: 'Andorra', year: 2017, month: 12 },
+        { name: 'Turchia', year: 2018, month: 3 }, { name: 'Stati Uniti', year: 2018, month: 6 },
+        { name: 'Arabia Saudita', year: 2018, month: 10 }, { name: 'Malta', year: 2019, month: 12 },
+        { name: 'Ungheria', year: 2024, month: 3 }, { name: 'Romania', year: 2024, month: 4 },
+        { name: 'Lituania', year: 2026, month: 3 }, { name: 'Lettonia', year: 2026, month: 4 },
+    ];
+    const FIRST_SEEN_MAP = {}; FIRST_SEEN.forEach(e => { FIRST_SEEN_MAP[e.name] = e; });
 
     // Elenco esteso di paesi (per l'autocomplete) con continente, usato anche per i nuovi paesi aggiunti
     const WORLD_CONTINENTS = {
@@ -347,7 +431,14 @@
         { key: 'h', label: 'Poche ore', min: 0 },
     ];
 
-    const CATEGORY_LABELS = { vissuto: 'Vissuto / lavorato', viaggiato: 'Viaggiato', attraversato: 'Solo attraversato', confine: 'Visto dal confine' };
+    const CATEGORY_LABELS = {
+        vissuto: 'Vissuto',
+        lavorato: 'Lavorato',
+        visitato: 'Visitato',
+        visitato_lavorato: 'Visitato e lavorato',
+        attraversato: 'Attraversato',
+        confine: 'Visto dal confine'
+    };
     const PURPOSE_LABELS = {
         none: 'Da specificare',
         lavoro: 'Lavoro',
@@ -364,8 +455,8 @@
     let categoryOverrides = {};
     let purposeOverrides = {};
     let currentUnit = 'days';
+    let lifeUnit = 'days';
     let donutChart = null;
-    let countryPieChart = null;
     let mapRendered = false;
 
     /* ================= UTILITY ================= */
@@ -380,6 +471,18 @@
     function lifeDaysToday() {
         const diff = (new Date() - new Date(BIRTHDATE)) / 86400000;
         return Math.floor(diff);
+    }
+    // Calcolo astronomico (approssimato, mese sinodico medio) del numero di lune piene.
+    // Riferimento: luna piena del 21/01/2000 04:40:27 UTC, JD 2451564.694762293.
+    const MOON_REF_JD = 2451564.694762293;
+    const SYNODIC_MONTH = 29.530588861;
+    function toJulianDate(date) { return date.getTime() / 86400000 + 2440587.5; }
+    function fullMoonsSinceBirth() {
+        const birthJD = toJulianDate(new Date(BIRTHDATE));
+        const nowJD = toJulianDate(new Date());
+        const k1 = Math.floor((birthJD - MOON_REF_JD) / SYNODIC_MONTH);
+        const k2 = Math.floor((nowJD - MOON_REF_JD) / SYNODIC_MONTH);
+        return k2 - k1;
     }
     function convertUnit(days, unit) {
         const c = { days: days, months: days / 30.44, years: days / 365.25 };
@@ -398,7 +501,7 @@
     function categoryOf(name) {
         if (categoryOverrides[name]) return categoryOverrides[name];
         const base = COUNTRIES.find(c => c.name === name);
-        return base ? base.category : 'viaggiato';
+        return base ? base.category : 'visitato';
     }
     function isRealVisit(name) {
         const cat = categoryOf(name);
@@ -461,12 +564,84 @@
         const italiaDays = totals['Italia'] || 0;
         const spagnaDays = totals['Spagna'] || 0;
 
-        document.getElementById('lifeDays').textContent = life.toLocaleString('it-IT');
+        document.getElementById('lifeDays').textContent = convertUnit(life, lifeUnit).toLocaleString('it-IT', { maximumFractionDigits: lifeUnit === 'days' ? 0 : 1 });
         document.getElementById('totalCountries').textContent = countryCount;
         document.getElementById('pctItalia').textContent = ((italiaDays / life) * 100).toFixed(1) + '%';
         document.getElementById('pctSpagna').textContent = ((spagnaDays / life) * 100).toFixed(1) + '%';
         document.getElementById('worldPercent').textContent = ((countryCount / TOTAL_WORLD_COUNTRIES) * 100).toFixed(1) + '%';
+        document.getElementById('fullMoons').textContent = fullMoonsSinceBirth().toLocaleString('it-IT');
         document.getElementById('currentCountry').textContent = getCurrentCountry();
+    }
+
+    /* ================= RENDER: COMPOSIZIONE PER CATEGORIA (idea 1) ================= */
+    const CATEGORY_CHART_COLORS = {
+        vissuto: '#F5A623',
+        lavorato: '#43C6AC',
+        visitato: '#8BC34A',
+        visitato_lavorato: '#B98BD9',
+        attraversato: '#E4572E',
+        confine: '#4C86C6'
+    };
+    function renderComposition() {
+        const totals = computeTotals();
+        const life = lifeDaysToday();
+        const byCat = {};
+        Object.keys(CATEGORY_LABELS).forEach(k => byCat[k] = 0);
+        Object.entries(totals).forEach(([name, days]) => {
+            const cat = categoryOf(name);
+            byCat[cat] = (byCat[cat] || 0) + days;
+        });
+
+        const bar = document.getElementById('compBar');
+        const legend = document.getElementById('compLegend');
+        const order = Object.keys(CATEGORY_LABELS).filter(k => byCat[k] > 0);
+
+        bar.innerHTML = order.map(k => {
+            const pct = (byCat[k] / life) * 100;
+            return `<div class="comp-seg" style="width:${pct}%; background:${CATEGORY_CHART_COLORS[k]}" title="${CATEGORY_LABELS[k]}: ${pct.toFixed(1)}%"></div>`;
+        }).join('');
+
+        legend.innerHTML = order.sort((a, b) => byCat[b] - byCat[a]).map(k => {
+            const pct = (byCat[k] / life) * 100;
+            return `
+                <div class="legend-item">
+                    <span class="swatch-name"><span class="swatch" style="background:${CATEGORY_CHART_COLORS[k]}"></span>${CATEGORY_LABELS[k]}</span>
+                    <span class="val">${pct.toFixed(1)}% · ${Math.round(byCat[k]).toLocaleString('it-IT')} gg</span>
+                </div>`;
+        }).join('');
+    }
+
+    /* ================= RENDER: COPERTURA PER CONTINENTE (idea 4) ================= */
+    function renderContinentRadar() {
+        const totalsByContinent = {};
+        Object.values(WORLD_CONTINENTS).forEach(c => { totalsByContinent[c] = (totalsByContinent[c] || 0) + 1; });
+
+        const totals = computeTotals();
+        const visitedByContinent = {};
+        Object.entries(totals).forEach(([name, days]) => {
+            if (days <= 0 || !isRealVisit(name)) return;
+            const c = continentOf(name);
+            (visitedByContinent[c] = visitedByContinent[c] || new Set()).add(name);
+        });
+
+        const continents = Object.keys(totalsByContinent).sort((a, b) => {
+            const pctA = (visitedByContinent[a] ? visitedByContinent[a].size : 0) / totalsByContinent[a];
+            const pctB = (visitedByContinent[b] ? visitedByContinent[b].size : 0) / totalsByContinent[b];
+            return pctB - pctA;
+        });
+
+        const el = document.getElementById('continentCoverage');
+        el.innerHTML = continents.map(c => {
+            const visited = visitedByContinent[c] ? visitedByContinent[c].size : 0;
+            const total = totalsByContinent[c];
+            const pct = (visited / total) * 100;
+            return `
+                <div class="bar-row">
+                    <div class="country-name">${c}</div>
+                    <div class="bar-track"><div class="bar-fill" style="width:${Math.max(2, pct)}%; background:${continentColor(c)}"></div></div>
+                    <div class="value">${visited}/${total} · ${pct.toFixed(0)}%</div>
+                </div>`;
+        }).join('');
     }
 
     function getCurrentCountry() {
@@ -489,7 +664,7 @@
             const cont = continentOf(name);
             const pct = Math.max(2, (days / max) * 100);
             const cat = categoryOf(name);
-            const flag = cat === 'vissuto' ? '● vissuto' : '';
+            const flag = cat !== 'visitato' ? `● ${CATEGORY_LABELS[cat].toLowerCase()}` : '';
             return `
                 <div class="bar-row">
                     <div class="country-name">${name}${flag ? `<span class="cat-flag">${flag}</span>` : ''}</div>
@@ -499,89 +674,98 @@
         }).join('');
     }
 
-    /* ================= RENDER: DONUT CONTINENTI ================= */
-    function renderDonut() {
+    /* ================= RENDER: DISTRIBUZIONE (continenti / paesi, a schede) ================= */
+    let distView = 'continent';
+
+    function renderDistribution() {
         const totals = computeTotals();
-        const byCont = {};
-        Object.entries(totals).forEach(([name, days]) => {
-            if (days <= 0 || !isRealVisit(name)) return;
-            const c = continentOf(name);
-            byCont[c] = (byCont[c] || 0) + days;
-        });
-        const entries = Object.entries(byCont).sort((a, b) => b[1] - a[1]);
-        const labels = entries.map(e => e[0]);
-        const values = entries.map(e => e[1]);
-        const colors = labels.map(l => continentColor(l));
 
-        if (donutChart) donutChart.destroy();
-        donutChart = new Chart(document.getElementById('continentDonut'), {
-            type: 'doughnut',
-            data: { labels, datasets: [{ data: values, backgroundColor: colors, borderColor: '#121F30', borderWidth: 3 }] },
-            options: {
-                cutout: '68%',
-                plugins: {
-                    legend: { display: false },
-                    tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${formatUnit(convertUnit(ctx.parsed, currentUnit), currentUnit)}` } }
-                }
-            }
-        });
-        document.getElementById('donutTotal').textContent = labels.length;
-
-        const legend = document.getElementById('continentLegend');
-        legend.innerHTML = entries.map(([cont, days]) => `
-            <div class="legend-item">
-                <span class="swatch-name"><span class="swatch" style="background:${continentColor(cont)}"></span>${cont}</span>
-                <span class="val">${formatUnit(convertUnit(days, currentUnit), currentUnit)}</span>
-            </div>`).join('');
-    }
-
-    /* ================= RENDER: TORTA TUTTI I PAESI ================= */
-    function renderCountryPie() {
-        const totals = computeTotals();
-        const byContinent = {};
-        Object.entries(totals).forEach(([name, days]) => {
-            if (days <= 0 || !isRealVisit(name)) return;
-            const c = continentOf(name);
-            (byContinent[c] = byContinent[c] || []).push([name, days]);
-        });
-        const continentsSorted = Object.keys(byContinent).sort((a, b) => {
-            const sumA = byContinent[a].reduce((s, e) => s + e[1], 0);
-            const sumB = byContinent[b].reduce((s, e) => s + e[1], 0);
-            return sumB - sumA;
-        });
-
-        const labels = [], values = [], colors = [];
-        continentsSorted.forEach(cont => {
-            const list = byContinent[cont].sort((a, b) => b[1] - a[1]);
-            const base = d3.color(continentColor(cont));
-            list.forEach(([name, days], i) => {
-                const t = list.length <= 1 ? 0.3 : i / (list.length - 1);
-                labels.push(name);
-                values.push(days);
-                colors.push(d3.interpolateRgb(base.brighter(0.4), base.darker(1.3))(t));
+        if (distView === 'continent') {
+            const byCont = {};
+            Object.entries(totals).forEach(([name, days]) => {
+                if (days <= 0 || !isRealVisit(name)) return;
+                const c = continentOf(name);
+                byCont[c] = (byCont[c] || 0) + days;
             });
-        });
+            const entries = Object.entries(byCont).sort((a, b) => b[1] - a[1]);
+            const labels = entries.map(e => e[0]);
+            const values = entries.map(e => e[1]);
+            const colors = labels.map(l => continentColor(l));
 
-        const total = values.reduce((a, b) => a + b, 0) || 1;
-        if (countryPieChart) countryPieChart.destroy();
-        countryPieChart = new Chart(document.getElementById('countryPie'), {
-            type: 'pie',
-            data: { labels, datasets: [{ data: values, backgroundColor: colors, borderColor: '#121F30', borderWidth: 1 }] },
-            options: {
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: (ctx) => `${ctx.label}: ${formatUnit(convertUnit(ctx.parsed, currentUnit), currentUnit)} (${((ctx.parsed / total) * 100).toFixed(1)}%)`
-                        }
+            if (donutChart) donutChart.destroy();
+            donutChart = new Chart(document.getElementById('distChart'), {
+                type: 'doughnut',
+                data: { labels, datasets: [{ data: values, backgroundColor: colors, borderColor: '#121F30', borderWidth: 3 }] },
+                options: {
+                    cutout: '68%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${formatUnit(convertUnit(ctx.parsed, currentUnit), currentUnit)}` } }
                     }
                 }
-            }
-        });
+            });
+            document.getElementById('distCenter').style.display = '';
+            document.getElementById('distTotal').textContent = labels.length;
+            document.getElementById('distTotalLbl').textContent = 'continenti';
+
+            document.getElementById('distLegend').innerHTML = entries.map(([cont, days]) => `
+                <div class="legend-item">
+                    <span class="swatch-name"><span class="swatch" style="background:${continentColor(cont)}"></span>${cont}</span>
+                    <span class="val">${formatUnit(convertUnit(days, currentUnit), currentUnit)}</span>
+                </div>`).join('');
+        } else {
+            const byContinent = {};
+            Object.entries(totals).forEach(([name, days]) => {
+                if (days <= 0 || !isRealVisit(name)) return;
+                const c = continentOf(name);
+                (byContinent[c] = byContinent[c] || []).push([name, days]);
+            });
+            const continentsSorted = Object.keys(byContinent).sort((a, b) => {
+                const sumA = byContinent[a].reduce((s, e) => s + e[1], 0);
+                const sumB = byContinent[b].reduce((s, e) => s + e[1], 0);
+                return sumB - sumA;
+            });
+
+            const labels = [], values = [], colors = [];
+            continentsSorted.forEach(cont => {
+                const list = byContinent[cont].sort((a, b) => b[1] - a[1]);
+                const base = d3.color(continentColor(cont));
+                list.forEach(([name, days], i) => {
+                    const t = list.length <= 1 ? 0.3 : i / (list.length - 1);
+                    labels.push(name);
+                    values.push(days);
+                    colors.push(d3.interpolateRgb(base.brighter(0.4), base.darker(1.3))(t));
+                });
+            });
+            const total = values.reduce((a, b) => a + b, 0) || 1;
+
+            if (donutChart) donutChart.destroy();
+            donutChart = new Chart(document.getElementById('distChart'), {
+                type: 'pie',
+                data: { labels, datasets: [{ data: values, backgroundColor: colors, borderColor: '#121F30', borderWidth: 1 }] },
+                options: {
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${formatUnit(convertUnit(ctx.parsed, currentUnit), currentUnit)} (${((ctx.parsed / total) * 100).toFixed(1)}%)` } }
+                    }
+                }
+            });
+            document.getElementById('distCenter').style.display = 'none';
+
+            document.getElementById('distLegend').innerHTML = '';
+        }
     }
 
     /* ================= RENDER: MAPPA MONDO ================= */
-    const BORDER_COLOR = '#6B5B95';
+    const BORDER_COLOR = '#3D5A80';
+    let cachedWorldFeatures = null;
+
+    async function loadWorldAtlas() {
+        if (cachedWorldFeatures) return cachedWorldFeatures;
+        const world = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json');
+        cachedWorldFeatures = topojson.feature(world, world.objects.countries);
+        return cachedWorldFeatures;
+    }
 
     async function renderMap() {
         const totals = computeTotals();
@@ -601,15 +785,14 @@
         const svg = d3.select('#worldMap');
         svg.selectAll('*').remove();
 
-        let world;
+        let countries;
         try {
-            world = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json');
+            countries = await loadWorldAtlas();
         } catch (e) {
             svg.append('text').attr('x', 480).attr('y', 250).attr('text-anchor', 'middle')
                 .attr('fill', '#7E90A8').attr('font-size', '14').text('Mappa non disponibile senza connessione internet');
             return;
         }
-        const countries = topojson.feature(world, world.objects.countries);
         const projection = d3.geoNaturalEarth1().fitSize([960, 500], countries);
         const path = d3.geoPath(projection);
 
@@ -632,6 +815,174 @@
                 const days = totals[name];
                 return `${name}: ${Math.round(days).toLocaleString('it-IT')} giorni (posizione #${rankByName[name] + 1})`;
             });
+    }
+
+    /* ================= RENDER: QUANDO HAI CONOSCIUTO UN NUOVO PAESE ================= */
+    let timelineChart = null;
+
+    function renderTimelineChart() {
+        const relevant = FIRST_SEEN.filter(e => isRealVisit(e.name));
+        const byYear = {};
+        relevant.forEach(e => { (byYear[e.year] = byYear[e.year] || []).push(e.name); });
+        const years = Object.keys(byYear).map(Number).sort((a, b) => a - b);
+        const counts = years.map(y => byYear[y].length);
+
+        if (timelineChart) timelineChart.destroy();
+        timelineChart = new Chart(document.getElementById('timelineChart'), {
+            type: 'bar',
+            data: { labels: years, datasets: [{ data: counts, backgroundColor: '#F5A623', borderRadius: 4, maxBarThickness: 28 }] },
+            options: {
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: (ctx) => byYear[years[ctx.dataIndex]].join(', ') } }
+                },
+                scales: {
+                    x: { ticks: { color: '#7E90A8', autoSkip: false, maxRotation: 60, minRotation: 60 }, grid: { display: false } },
+                    y: { ticks: { color: '#7E90A8', stepSize: 1, precision: 0 }, grid: { color: '#24354C' }, beginAtZero: true }
+                }
+            }
+        });
+
+        let peakYear = null, peakCount = 0;
+        years.forEach(y => { if (byYear[y].length > peakCount) { peakCount = byYear[y].length; peakYear = y; } });
+        const note = document.getElementById('timelinePeakNote');
+        if (peakYear) {
+            note.textContent = `Il periodo con più scoperte è stato il ${peakYear}: ${peakCount} paesi nuovi (${byYear[peakYear].join(', ')}).`;
+        }
+    }
+
+    /* ================= RENDER: PAESI CONOSCIUTI PER DECADE D'ETÀ ================= */
+    let decadePieChart = null;
+
+    function ageAtEncounter(entry) {
+        const encDate = new Date(entry.year, entry.month - 1, 1);
+        const birth = new Date(BIRTHDATE);
+        return (encDate - birth) / 86400000 / 365.25;
+    }
+
+    function renderDecadePie() {
+        const relevant = FIRST_SEEN.filter(e => isRealVisit(e.name));
+        const buckets = {};
+        relevant.forEach(e => {
+            const age = ageAtEncounter(e);
+            const start = Math.max(0, Math.floor(age / 10) * 10);
+            const label = `${start}-${start + 9} anni`;
+            (buckets[label] = buckets[label] || []).push(e.name);
+        });
+        const labels = Object.keys(buckets).sort((a, b) => parseInt(a) - parseInt(b));
+        const values = labels.map(l => buckets[l].length);
+        const total = values.reduce((a, b) => a + b, 0) || 1;
+        const colors = labels.map((_, i) => d3.interpolateOranges(0.28 + 0.62 * (labels.length <= 1 ? 0.5 : i / (labels.length - 1))));
+
+        if (decadePieChart) decadePieChart.destroy();
+        decadePieChart = new Chart(document.getElementById('decadePie'), {
+            type: 'pie',
+            data: { labels, datasets: [{ data: values, backgroundColor: colors, borderColor: '#121F30', borderWidth: 1 }] },
+            options: {
+                plugins: {
+                    legend: { position: 'right', labels: { color: '#E9EEF4' } },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => {
+                                const lbl = labels[ctx.dataIndex];
+                                return `${lbl}: ${values[ctx.dataIndex]} paesi (${((values[ctx.dataIndex] / total) * 100).toFixed(1)}%) — ${buckets[lbl].join(', ')}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    /* ================= RENDER: MAPPA ANIMATA NEL TEMPO ================= */
+    let timelineMapInit = false;
+    let tlIsoToName = {};
+    let tlColorForName = () => null;
+    let tlPlaying = false;
+    let tlInterval = null;
+
+    async function initTimelineMap() {
+        const totals = computeTotals();
+        const ranked = Object.entries(totals).filter(([name, d]) => d > 0 && isRealVisit(name)).sort((a, b) => b[1] - a[1]);
+        const rankByName = {}; ranked.forEach(([name], i) => rankByName[name] = i);
+        const N = ranked.length;
+        const isoByName = {}; COUNTRIES.forEach(c => { if (c.iso !== undefined && c.iso !== null) isoByName[c.name] = String(c.iso).padStart(3, '0'); });
+        tlIsoToName = {}; Object.entries(isoByName).forEach(([name, iso]) => { tlIsoToName[iso] = name; });
+
+        tlColorForName = function (name) {
+            const cat = categoryOf(name);
+            if (cat === 'confine' || cat === 'attraversato') return BORDER_COLOR;
+            if (!(name in rankByName)) return null;
+            const t = N <= 1 ? 1 : 1 - (rankByName[name] / (N - 1));
+            return d3.interpolateOranges(0.22 + 0.68 * t);
+        };
+
+        const svg = d3.select('#timelineMap');
+        svg.selectAll('*').remove();
+
+        let features;
+        try {
+            features = await loadWorldAtlas();
+        } catch (e) {
+            svg.append('text').attr('x', 480).attr('y', 250).attr('text-anchor', 'middle')
+                .attr('fill', '#7E90A8').attr('font-size', '14').text('Mappa non disponibile senza connessione internet');
+            return;
+        }
+        const projection = d3.geoNaturalEarth1().fitSize([960, 500], features);
+        const path = d3.geoPath(projection);
+
+        svg.selectAll('path')
+            .data(features.features)
+            .join('path')
+            .attr('d', path)
+            .attr('fill', 'var(--panel-raised)')
+            .append('title');
+
+        const relevant = FIRST_SEEN.filter(e => isRealVisit(e.name));
+        const minYear = relevant.length ? Math.min(...relevant.map(e => e.year)) : 1977;
+        const maxYear = new Date().getFullYear();
+        const slider = document.getElementById('yearSlider');
+        slider.min = minYear; slider.max = maxYear; slider.value = minYear;
+
+        updateTimelineMap(minYear);
+
+        slider.addEventListener('input', () => { stopTimelinePlay(); updateTimelineMap(+slider.value); });
+        document.getElementById('playBtn').addEventListener('click', () => {
+            if (tlPlaying) stopTimelinePlay(); else startTimelinePlay();
+        });
+    }
+
+    function updateTimelineMap(year) {
+        const relevant = FIRST_SEEN.filter(e => isRealVisit(e.name) && e.year <= year);
+        const knownNames = new Set(relevant.map(e => e.name));
+        const sel = d3.select('#timelineMap').selectAll('path');
+        sel.attr('fill', d => {
+            const name = tlIsoToName[String(d.id)];
+            return (name && knownNames.has(name)) ? (tlColorForName(name) || 'var(--panel-raised)') : 'var(--panel-raised)';
+        });
+        sel.select('title').text(d => {
+            const name = tlIsoToName[String(d.id)];
+            return name || (d.properties && d.properties.name) || '';
+        });
+        document.getElementById('yearSlider').value = year;
+        document.getElementById('yearLabel').textContent = `${year} — ${knownNames.size} paesi`;
+    }
+
+    function startTimelinePlay() {
+        tlPlaying = true;
+        document.getElementById('playBtn').textContent = '⏸ Pausa';
+        const slider = document.getElementById('yearSlider');
+        tlInterval = setInterval(() => {
+            const y = +slider.value + 1;
+            if (y > +slider.max) { stopTimelinePlay(); return; }
+            updateTimelineMap(y);
+        }, 450);
+    }
+    function stopTimelinePlay() {
+        tlPlaying = false;
+        document.getElementById('playBtn').textContent = '▶ Play';
+        if (tlInterval) clearInterval(tlInterval);
+        tlInterval = null;
     }
 
     /* ================= RENDER: CATEGORIE PER DURATA ================= */
@@ -686,6 +1037,14 @@
         categoryOverrides[name] = value;
         saveCategories();
         renderBarList();
+        renderDistribution();
+        renderComposition();
+        renderContinentRadar();
+        renderTimelineChart();
+        renderDecadePie();
+        renderBuckets();
+        renderMap();
+        if (timelineMapInit) initTimelineMap();
     }
 
     /* ================= RENDER: VIAGGI REGISTRATI ================= */
@@ -770,20 +1129,41 @@
         btn.classList.add('active');
         currentUnit = btn.dataset.unit;
         renderBarList();
-        renderDonut();
-        renderCountryPie();
+        renderDistribution();
+    });
+
+    document.getElementById('distToggle').addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        document.querySelectorAll('#distToggle button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        distView = btn.dataset.view;
+        renderDistribution();
+    });
+
+    document.getElementById('lifeUnitToggle').addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        document.querySelectorAll('#lifeUnitToggle button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        lifeUnit = btn.dataset.unit;
+        renderStats();
     });
 
     /* ================= AVVIO ================= */
     function renderAll() {
         renderStats();
         renderBarList();
-        renderDonut();
-        renderCountryPie();
+        renderDistribution();
+        renderComposition();
+        renderContinentRadar();
+        renderTimelineChart();
+        renderDecadePie();
         renderBuckets();
         renderCountryTable();
         renderLoggedList();
         if (!mapRendered) { mapRendered = true; renderMap(); }
+        if (!timelineMapInit) { timelineMapInit = true; initTimelineMap(); }
     }
 
     loadState();

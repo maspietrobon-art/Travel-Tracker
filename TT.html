@@ -178,12 +178,7 @@
     <div class="stat-strip">
         <div class="stat">
             <div class="stat-value" id="lifeDays">0</div>
-            <div class="stat-label">giorni di vita</div>
-            <div class="mini-toggle" id="lifeUnitToggle">
-                <button data-unit="days" class="active">gg</button>
-                <button data-unit="months">mesi</button>
-                <button data-unit="years">anni</button>
-            </div>
+            <div class="stat-label" id="lifeDaysLabel">giorni di vita</div>
         </div>
         <div class="stat">
             <div class="stat-value teal" id="totalCountries">0</div>
@@ -461,7 +456,6 @@
     let categoryOverrides = {};
     let purposeOverrides = {};
     let currentUnit = 'days';
-    let lifeUnit = 'days';
     let donutChart = null;
     let mapRendered = false;
 
@@ -496,7 +490,8 @@
     }
     function formatUnit(value, unit) {
         const labels = { days: 'gg', months: 'mesi', years: 'anni' };
-        return `${value.toFixed(1)} ${labels[unit]}`;
+        const decimals = unit === 'days' ? 0 : 1;
+        return `${value.toLocaleString('it-IT', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })} ${labels[unit]}`;
     }
     function continentColor(cont) { return CONTINENT_COLORS[cont] || CONTINENT_COLORS['Altro']; }
     function continentOf(name) {
@@ -570,7 +565,9 @@
         const italiaDays = totals['Italia'] || 0;
         const spagnaDays = totals['Spagna'] || 0;
 
-        document.getElementById('lifeDays').textContent = convertUnit(life, lifeUnit).toLocaleString('it-IT', { maximumFractionDigits: lifeUnit === 'days' ? 0 : 1 });
+        const unitLabels = { days: 'giorni di vita', months: 'mesi di vita', years: 'anni di vita' };
+        document.getElementById('lifeDays').textContent = convertUnit(life, currentUnit).toLocaleString('it-IT', { maximumFractionDigits: currentUnit === 'days' ? 0 : 1 });
+        document.getElementById('lifeDaysLabel').textContent = unitLabels[currentUnit];
         document.getElementById('totalCountries').textContent = countryCount;
         document.getElementById('pctItalia').textContent = ((italiaDays / life) * 100).toFixed(1) + '%';
         document.getElementById('pctSpagna').textContent = ((spagnaDays / life) * 100).toFixed(1) + '%';
@@ -612,7 +609,7 @@
             return `
                 <div class="legend-item">
                     <span class="swatch-name"><span class="swatch" style="background:${CATEGORY_CHART_COLORS[k]}"></span>${CATEGORY_LABELS[k]}</span>
-                    <span class="val">${pct.toFixed(1)}% · ${Math.round(byCat[k]).toLocaleString('it-IT')} gg</span>
+                    <span class="val">${pct.toFixed(1)}% · ${formatUnit(convertUnit(byCat[k], currentUnit), currentUnit)}</span>
                 </div>`;
         }).join('');
     }
@@ -840,7 +837,7 @@
                 const name = isoToName[String(d.id)];
                 if (!name || !(name in rankByName)) return d.properties && d.properties.name || '';
                 const days = totals[name];
-                return `${name}: ${Math.round(days).toLocaleString('it-IT')} giorni (posizione #${rankByName[name] + 1})`;
+                return `${name}: ${formatUnit(convertUnit(days, currentUnit), currentUnit)} (posizione #${rankByName[name] + 1})`;
             });
     }
 
@@ -1054,7 +1051,7 @@
                 <div class="country-row">
                     <div class="name-cell"><span class="row-dot" style="background:${continentColor(cont)}"></span>${name}</div>
                     <select onchange="setCategory('${name.replace(/'/g, "\\'")}', this.value)">${options}</select>
-                    <div class="days-cell">${Math.round(days).toLocaleString('it-IT')} gg</div>
+                    <div class="days-cell">${formatUnit(convertUnit(days, currentUnit), currentUnit)}</div>
                     <div class="pct-cell">${pctStr}</div>
                 </div>`;
         }).join('');
@@ -1085,7 +1082,7 @@
                 <div class="logged-left">
                     <span class="row-dot" style="background:${continentColor(continentOf(t.country))}"></span>
                     <strong>${t.country}</strong>
-                    <span class="logged-dates">${formatDate(t.startDate)} → ${formatDate(t.endDate)} (${t.days} gg)</span>
+                    <span class="logged-dates">${formatDate(t.startDate)} → ${formatDate(t.endDate)} (${formatUnit(convertUnit(t.days, currentUnit), currentUnit)})</span>
                 </div>
                 <div style="display:flex; gap:8px;">
                     <button class="del-btn" onclick="startEdit(${t.idx})">Modifica</button>
@@ -1154,8 +1151,13 @@
         document.querySelectorAll('#unitToggle button').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         currentUnit = btn.dataset.unit;
+        renderStats();
         renderBarList();
         renderDistribution();
+        renderComposition();
+        renderCountryTable();
+        renderLoggedList();
+        renderMap();
     });
 
     document.getElementById('distToggle').addEventListener('click', (e) => {
@@ -1165,15 +1167,6 @@
         btn.classList.add('active');
         distView = btn.dataset.view;
         renderDistribution();
-    });
-
-    document.getElementById('lifeUnitToggle').addEventListener('click', (e) => {
-        const btn = e.target.closest('button');
-        if (!btn) return;
-        document.querySelectorAll('#lifeUnitToggle button').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        lifeUnit = btn.dataset.unit;
-        renderStats();
     });
 
     /* ================= AVVIO ================= */

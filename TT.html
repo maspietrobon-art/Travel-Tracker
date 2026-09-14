@@ -232,6 +232,7 @@
                 <div class="unit-toggle" id="distToggle">
                     <button data-view="continent" class="active">Continenti</button>
                     <button data-view="country">Paesi</button>
+                    <button data-view="coverage">Copertura</button>
                 </div>
             </div>
             <div class="donut-wrap" id="distDonutWrap">
@@ -240,12 +241,6 @@
             </div>
             <div class="legend" id="distLegend"></div>
         </div>
-    </div>
-
-    <div class="map-panel">
-        <div class="section-head"><h2>Copertura per continente</h2></div>
-        <div class="section-note">Quanti paesi hai davvero visitato su quelli esistenti in ciascun continente (esclusi attraversati/confine).</div>
-        <div id="continentCoverage"></div>
     </div>
 
     <div class="map-panel">
@@ -298,6 +293,17 @@
     <div class="logged-panel">
         <h2 style="margin-bottom:10px;">Viaggi registrati di recente</h2>
         <div id="loggedList"></div>
+    </div>
+
+    <div class="logged-panel">
+        <h2 style="margin-bottom:6px;">Backup dati</h2>
+        <div class="section-note" style="margin-bottom:14px;">Esporta i viaggi registrati e le categorie personalizzate in un file JSON, da ricaricare in una versione futura di questa pagina senza perdere nulla.</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button type="button" class="add-btn" id="exportBtn">Esporta dati (JSON)</button>
+            <button type="button" class="del-btn" id="importBtn" style="padding:11px 20px;">Importa dati (JSON)</button>
+            <input type="file" id="importFile" accept="application/json" style="display:none;">
+        </div>
+        <div class="section-note" id="importStatus" style="margin-top:10px; margin-bottom:0;"></div>
     </div>
 
 </div>
@@ -612,7 +618,7 @@
     }
 
     /* ================= RENDER: COPERTURA PER CONTINENTE (idea 4) ================= */
-    function renderContinentRadar() {
+    function computeContinentCoverage() {
         const totalsByContinent = {};
         Object.values(WORLD_CONTINENTS).forEach(c => { totalsByContinent[c] = (totalsByContinent[c] || 0) + 1; });
 
@@ -624,24 +630,11 @@
             (visitedByContinent[c] = visitedByContinent[c] || new Set()).add(name);
         });
 
-        const continents = Object.keys(totalsByContinent).sort((a, b) => {
-            const pctA = (visitedByContinent[a] ? visitedByContinent[a].size : 0) / totalsByContinent[a];
-            const pctB = (visitedByContinent[b] ? visitedByContinent[b].size : 0) / totalsByContinent[b];
-            return pctB - pctA;
-        });
-
-        const el = document.getElementById('continentCoverage');
-        el.innerHTML = continents.map(c => {
+        return Object.keys(totalsByContinent).map(c => {
             const visited = visitedByContinent[c] ? visitedByContinent[c].size : 0;
             const total = totalsByContinent[c];
-            const pct = (visited / total) * 100;
-            return `
-                <div class="bar-row">
-                    <div class="country-name">${c}</div>
-                    <div class="bar-track"><div class="bar-fill" style="width:${Math.max(2, pct)}%; background:${continentColor(c)}"></div></div>
-                    <div class="value">${visited}/${total} · ${pct.toFixed(0)}%</div>
-                </div>`;
-        }).join('');
+            return { continent: c, visited, total, pct: (visited / total) * 100 };
+        }).sort((a, b) => b.pct - a.pct);
     }
 
     function getCurrentCountry() {
@@ -713,7 +706,7 @@
                     <span class="swatch-name"><span class="swatch" style="background:${continentColor(cont)}"></span>${cont}</span>
                     <span class="val">${formatUnit(convertUnit(days, currentUnit), currentUnit)}</span>
                 </div>`).join('');
-        } else {
+        } else if (distView === 'country') {
             const byContinent = {};
             Object.entries(totals).forEach(([name, days]) => {
                 if (days <= 0 || !isRealVisit(name)) return;
@@ -751,8 +744,42 @@
                 }
             });
             document.getElementById('distCenter').style.display = 'none';
-
             document.getElementById('distLegend').innerHTML = '';
+        } else {
+            const coverage = computeContinentCoverage();
+            const labels = coverage.map(c => c.continent);
+            const values = coverage.map(c => c.pct);
+            const colors = labels.map(l => continentColor(l));
+
+            if (donutChart) donutChart.destroy();
+            donutChart = new Chart(document.getElementById('distChart'), {
+                type: 'doughnut',
+                data: { labels, datasets: [{ data: values, backgroundColor: colors, borderColor: '#121F30', borderWidth: 3 }] },
+                options: {
+                    cutout: '68%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => {
+                                    const c = coverage[ctx.dataIndex];
+                                    return `${c.continent}: ${c.visited}/${c.total} visitati (${c.pct.toFixed(0)}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            const avgPct = coverage.reduce((s, c) => s + c.pct, 0) / (coverage.length || 1);
+            document.getElementById('distCenter').style.display = '';
+            document.getElementById('distTotal').textContent = avgPct.toFixed(0) + '%';
+            document.getElementById('distTotalLbl').textContent = 'media coperta';
+
+            document.getElementById('distLegend').innerHTML = coverage.map(c => `
+                <div class="legend-item">
+                    <span class="swatch-name"><span class="swatch" style="background:${continentColor(c.continent)}"></span>${c.continent}</span>
+                    <span class="val">${c.visited}/${c.total} · ${c.pct.toFixed(0)}%</span>
+                </div>`).join('');
         }
     }
 
@@ -1039,7 +1066,6 @@
         renderBarList();
         renderDistribution();
         renderComposition();
-        renderContinentRadar();
         renderTimelineChart();
         renderDecadePie();
         renderBuckets();
@@ -1156,7 +1182,6 @@
         renderBarList();
         renderDistribution();
         renderComposition();
-        renderContinentRadar();
         renderTimelineChart();
         renderDecadePie();
         renderBuckets();
@@ -1165,6 +1190,55 @@
         if (!mapRendered) { mapRendered = true; renderMap(); }
         if (!timelineMapInit) { timelineMapInit = true; initTimelineMap(); }
     }
+
+    /* ================= EXPORT / IMPORT DATI ================= */
+    document.getElementById('exportBtn').addEventListener('click', () => {
+        const payload = {
+            exportedAt: new Date().toISOString(),
+            version: 1,
+            extraTrips,
+            categoryOverrides,
+            purposeOverrides
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `travel-tracker-backup-${todayStr()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('importBtn').addEventListener('click', () => {
+        document.getElementById('importFile').click();
+    });
+
+    document.getElementById('importFile').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const status = document.getElementById('importStatus');
+        const reader = new FileReader();
+        reader.onload = () => {
+            try {
+                const data = JSON.parse(reader.result);
+                if (!data || typeof data !== 'object') throw new Error('formato non valido');
+                extraTrips = Array.isArray(data.extraTrips) ? data.extraTrips : [];
+                categoryOverrides = data.categoryOverrides && typeof data.categoryOverrides === 'object' ? data.categoryOverrides : {};
+                purposeOverrides = data.purposeOverrides && typeof data.purposeOverrides === 'object' ? data.purposeOverrides : {};
+                saveTrips();
+                saveCategories();
+                savePurposes();
+                renderAll();
+                status.textContent = `Importato con successo (${extraTrips.length} viaggi, esportato il ${data.exportedAt ? formatDate(data.exportedAt.slice(0, 10)) : 'n/d'}).`;
+            } catch (err) {
+                status.textContent = 'File non valido: impossibile importare i dati.';
+            }
+        };
+        reader.readAsText(file);
+        e.target.value = '';
+    });
 
     loadState();
     populateDatalist();

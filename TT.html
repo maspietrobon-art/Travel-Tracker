@@ -32,7 +32,9 @@
     }
     .wrap { max-width: 1180px; margin: 0 auto; }
 
-    .tabs { display: flex; gap: 8px; margin-bottom: 22px; border-bottom: 1px solid var(--line); }
+    .tabs { display: flex; gap: 8px; margin-bottom: 22px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+    .tab-btn { white-space: nowrap; }
+    @media (max-width: 600px) { .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 0; } .tab-btn { padding: 11px 6px; text-align: center; border-bottom: 2px solid transparent; } }
     .tab-btn { background: none; border: none; color: var(--muted); padding: 10px 16px; font-size: 0.92em; font-weight: 600; font-family: inherit; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
     .tab-btn.active { color: var(--amber); border-bottom-color: var(--amber); }
     .tab-panel { display: none; }
@@ -113,9 +115,44 @@
     #eventsMap { width: 100%; height: auto; display: block; overflow: hidden; border-radius: 10px; touch-action: none; }
     #eventsMap path { stroke: var(--bg); stroke-width: 0.5; }
     #eventsMap:active { cursor: grabbing; }
+    .bar-row.clickable { cursor: pointer; border-radius: 6px; transition: background 0.15s; }
+    .bar-row.clickable:hover { background: rgba(245,166,35,0.10); }
+    .bar-row.clickable.active { background: rgba(245,166,35,0.18); outline: 1px solid var(--amber); }
+    .ev-filter { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+    .ev-filter select { background: var(--bg); border: 1px solid var(--line); color: var(--text); border-radius: 8px; padding: 8px 10px; font-family: inherit; font-size: 0.88em; max-width: 220px; }
+    .ev-filter-all { font-size: 0.8em; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+    .ev-trip-head { margin: 14px 0 4px; font-size: 0.8em; font-weight: 700; color: var(--teal); padding-bottom: 4px; border-bottom: 1px dashed var(--line); }
+    .ev-sep { margin: 18px 0 6px; font-size: 0.8em; font-weight: 700; color: var(--muted); }
+    .logged-row.ev-hit { background: rgba(245,166,35,0.13); border-left: 3px solid var(--amber); padding-left: 8px; border-radius: 6px; }
+    .tl-controls { flex-wrap: wrap; }
+    .tl-year-label { min-width: 0 !important; }
+    .ev-full { padding: 10px 12px !important; }
+    .ev-full .section-head h2 { display: none; }
+    .ev-full .section-head { justify-content: flex-end; margin-bottom: 6px; }
+    .ev-full .ev-toolbar { flex-wrap: nowrap; overflow-x: auto; margin-bottom: 6px; padding-bottom: 2px; }
+    .ev-full .ev-toolbar > * { flex-shrink: 0; }
+    .ev-full .tl-controls { gap: 8px; margin-top: 6px; }
+    .ev-full .tl-year-label { font-size: 0.72em; }
+    .ev-full #eventsCurrentNote { margin-top: 4px !important; font-size: 0.72em; }
+    .ev-full .ev-legend { flex-wrap: nowrap; overflow-x: auto; gap: 10px; margin-top: 6px; font-size: 0.7em; }
+    .ev-full .ev-legend > span { flex-shrink: 0; white-space: nowrap; }
+    .section-note.clamp, .quick-add-hint.clamp { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; cursor: pointer; }
+    .section-note.clamp.open, .quick-add-hint.clamp.open { display: block; -webkit-line-clamp: unset; overflow: visible; }
+    .sch-trip { margin-bottom: 4px; }
+    .sch-trip > summary { cursor: pointer; list-style: none; }
+    .sch-trip > summary::-webkit-details-marker { display: none; }
+    .sch-trip > summary::before { content: '▸'; display: inline-block; margin-right: 6px; color: var(--muted); transition: transform 0.15s; }
+    .sch-trip[open] > summary::before { transform: rotate(90deg); }
+    .sch-link { cursor: pointer; }
+    .sch-link:hover .country-name { color: var(--amber); }
+    .sch-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; margin-bottom: 22px; }
+    .sch-tiles .stat { border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .sch-badges { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 16px; }
+    .sch-badge { font-size: 0.78em; padding: 3px 10px; border-radius: 12px; background: var(--panel-raised); border: 1px solid var(--line); color: var(--muted); }
+    .ev-seq { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; padding: 0 6px; border-radius: 12px; background: var(--amber); color: #16110A; font-weight: 800; margin-right: 8px; font-size: 0.95em; }
     .ev-full { position: fixed !important; inset: 0; z-index: 2000; margin: 0 !important; border-radius: 0 !important; display: flex; flex-direction: column; overflow: auto; background: var(--panel) !important; }
     .ev-full .ev-note { display: none; }
-    .ev-full #eventsMap { flex: 1 1 auto; min-height: 0; height: 100%; border-radius: 0; }
+    .ev-full #eventsMap { flex: 1 1 0; min-height: 0; width: 100%; height: auto; border-radius: 0; }
     body.ev-noscroll { overflow: hidden; }
     .ev-legend { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-top: 10px; font-size: 0.78em; color: var(--muted); }
     .ev-legend span.dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
@@ -131,10 +168,13 @@
     .bucket-countries { font-size: 0.83em; color: var(--muted); line-height: 1.5; }
 
     .list-panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin-bottom: 26px; }
-    .country-row { display: grid; grid-template-columns: 1fr 130px 90px 60px 30px; align-items: center; gap: 10px; padding: 9px 4px; border-bottom: 1px solid var(--line); font-size: 0.88em; }
+    .country-row { display: grid; grid-template-columns: minmax(90px, 1.1fr) 112px 1.2fr 78px 52px 28px; align-items: center; gap: 8px; padding: 7px 2px; border-bottom: 1px solid var(--line); font-size: 0.86em; }
+    .country-row .sch-open:hover .nm { color: var(--amber); text-decoration: underline; }
+    .country-row .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .country-row .bar-track { height: 10px; }
     .country-row:last-child { border-bottom: none; }
-    .country-row .name-cell { display: flex; align-items: center; gap: 8px; }
-    .country-row select { background: var(--bg); border: 1px solid var(--line); color: var(--text); font-family: inherit; font-size: 0.82em; padding: 5px 6px; border-radius: 6px; }
+    .country-row .name-cell { display: flex; align-items: center; gap: 7px; min-width: 0; }
+    .country-row select { background: var(--bg); border: 1px solid var(--line); color: var(--text); font-family: inherit; font-size: 0.78em; padding: 4px 4px; border-radius: 6px; width: 100%; min-width: 0; }
     .country-row .days-cell { font-family: 'JetBrains Mono', monospace; color: var(--teal); text-align: right; font-size: 0.88em; }
     .country-row .pct-cell { color: var(--muted); text-align: right; font-size: 0.82em; }
     .edit-btn { padding: 4px 8px !important; font-size: 0.85em !important; }
@@ -159,8 +199,9 @@
         .stat:nth-child(2n) { border-right: none; }
         #travelForm { grid-template-columns: 1fr 1fr; }
         .add-btn { grid-column: 1 / -1; }
-        .country-row, .list-head { grid-template-columns: 1fr 90px 50px 26px; }
-        .country-row select { display: none; }
+        .country-row { grid-template-columns: 1fr 74px 50px 26px; grid-template-areas: 'name days pct edit' 'bar bar sel sel'; row-gap: 5px; }
+        .country-row .name-cell { grid-area: name; } .country-row .days-cell { grid-area: days; } .country-row .pct-cell { grid-area: pct; } .country-row .edit-btn { grid-area: edit; }
+        .country-row .bar-track { grid-area: bar; } .country-row .cat-sel { grid-area: sel; }
         .bucket-row { grid-template-columns: 100px 26px 1fr; }
     }
 </style>
@@ -177,6 +218,7 @@
         <button class="tab-btn active" data-tab="panoramica">Panoramica</button>
         <button class="tab-btn" data-tab="eventi">Eventi</button>
         <button class="tab-btn" data-tab="mappa-eventi">Mappa nel tempo</button>
+        <button class="tab-btn" data-tab="scheda">📍 Scheda paese/città</button>
     </div>
 
     <div class="tab-panel active" id="tab-panoramica">
@@ -246,16 +288,17 @@
     <div class="main-grid">
         <div class="panel">
             <div class="section-head">
-                <h2>Tempo per paese</h2>
+                <h2>Paesi: tempo e categoria</h2>
                 <div class="unit-toggle" id="unitToggle">
                     <button data-unit="days" class="active">giorni</button>
                     <button data-unit="months">mesi</button>
                     <button data-unit="years">anni</button>
                 </div>
             </div>
-            <div id="barList"></div>
+            <div class="section-note">Tutti i paesi in ordine di tempo trascorso (si riordinano da soli se i numeri cambiano). Tocca il nome di un paese per aprirne la scheda con tutte le statistiche. La categoria è un punto di partenza: modificala liberamente, resta salvata sul tuo dispositivo. La matita corregge i giorni e la data di prima conoscenza.</div>
+            <div id="countryTable"></div>
         </div>
-        <div class="panel">
+        <div class="panel" style="align-self:start; position:sticky; top:12px;">
             <div class="section-head">
                 <h2>Distribuzione del tempo</h2>
                 <div class="unit-toggle" id="distToggle">
@@ -292,31 +335,13 @@
             <span>meno visitato</span>
             <div class="map-scale-bar"></div>
             <span>più visitato</span>
-            <span style="display:flex; align-items:center; gap:6px; margin-left:18px;"><span class="swatch" style="background:#3D5A80;"></span>attraversato / confine</span>
-        </div>
-    </div>
-
-    <div class="map-panel">
-        <div class="section-head"><h2>Come si sono aggiunti i paesi nel tempo</h2></div>
-        <div class="section-note">Animazione basata sul file dei movimenti — stessi colori della mappa sopra.</div>
-        <svg id="timelineMap" viewBox="0 0 960 500"></svg>
-        <div class="tl-controls">
-            <button class="add-btn" id="playBtn" style="padding:8px 16px;">▶ Play</button>
-            <input type="range" id="yearSlider" min="1977" max="2026" value="1977" style="flex:1;">
-            <span class="tl-year-label" id="yearLabel">1977 — 0 paesi</span>
+            <span style="display:flex; align-items:center; gap:6px; margin-left:18px;"><span class="swatch" style="background:#3A4658;"></span>attraversato / confine</span>
         </div>
     </div>
 
     <div class="bucket-panel">
         <div class="section-head"><h2>Categorie per durata di permanenza</h2></div>
         <div id="bucketList"></div>
-    </div>
-
-    <div class="list-panel">
-        <div class="section-head"><h2>Elenco paesi</h2></div>
-        <div class="section-note">La categoria è un punto di partenza: modificala liberamente, resta salvata sul tuo dispositivo.</div>
-        <div class="list-head"><span>Paese</span><span>Categoria</span><span style="text-align:right;">Tempo</span><span style="text-align:right;">% vita</span><span></span></div>
-        <div id="countryTable"></div>
     </div>
 
     <div class="logged-panel">
@@ -424,11 +449,34 @@
         </div>
 
         <div class="list-panel">
-            <div class="section-head"><h2>Elenco eventi (tratte di viaggio)</h2></div>
-            <div class="section-note">Ogni riga è una tratta dal tuo file dei movimenti. Modificabile in caso di imprecisioni — le modifiche restano salvate sul tuo dispositivo.</div>
+            <div class="section-head" id="eventsListHead"><h2>Elenco eventi (tratte di viaggio)</h2></div>
+            <div class="ev-filter" id="eventsFilterBar">
+                <select id="evFilterCity"><option value="">Tutte le città</option></select>
+                <select id="evFilterCountry"><option value="">Tutti i paesi</option></select>
+                <label class="ev-filter-all"><input type="checkbox" id="evFilterAll"> mostra anche gli altri eventi (quelli filtrati restano in cima)</label>
+                <button type="button" class="del-btn" id="evFilterClear" style="display:none;">✕ Togli filtro</button>
+            </div>
+            <div class="section-note" id="evFilterInfo" style="margin-bottom:12px;"></div>
+            <div class="section-note">Tocca una città o un paese nelle classifiche qui sopra (o usa i filtri) per vedere solo i viaggi che li riguardano. Ogni riga è una tratta dal tuo file dei movimenti. Modificabile in caso di imprecisioni — le modifiche restano salvate sul tuo dispositivo.</div>
             <div id="eventsTable"></div>
         </div>
 
+    </div>
+
+    <div class="tab-panel" id="tab-scheda">
+        <div class="map-panel">
+            <div class="section-head"><h2>Scheda di un paese o di una città</h2></div>
+            <div class="section-note">Scegli un paese o una città per avere in un colpo solo il tempo trascorso e le percentuali, quante volte ci sei stato o ci sei solo passato, la linea degli anni in cui ci sei andato, i viaggi in dettaglio e altre statistiche. Ci arrivi anche toccando un nome nelle classifiche della scheda Eventi, oppure toccando un nome dentro questa stessa scheda.</div>
+            <div class="ev-toolbar">
+                <div class="unit-toggle" id="schedaKind">
+                    <button data-kind="country" class="active">Paese</button>
+                    <button data-kind="city">Città</button>
+                </div>
+                <select id="schedaSelect" style="background:var(--bg); border:1px solid var(--line); color:var(--text); border-radius:8px; padding:8px 10px; font-family:inherit; min-width:200px; max-width:100%;"></select>
+                <button class="del-btn" id="schedaToEvents" style="padding:7px 14px;">Vedi le tratte negli eventi</button>
+            </div>
+        </div>
+        <div id="schedaBody"></div>
     </div>
 
     <div class="tab-panel" id="tab-mappa-eventi">
@@ -436,13 +484,27 @@
             <div class="section-head"><h2>Come si sono aggiunti i viaggi, evento per evento</h2>
                 <button class="del-btn" id="eventsCloseFullBtn" style="display:none; padding:8px 16px; font-size:0.9em;">✕ Chiudi schermo intero</button>
             </div>
-            <div class="section-note ev-note">Ogni città citata nel file dei viaggi compare sulla mappa quando la incontri nel tempo. Trascina per spostarti, rotellina o pizzico per ingrandire (ingrandendo compaiono i nomi). La velocità del Play segue il tempo reale trascorso tra un viaggio e l'altro.</div>
+            <div class="section-note ev-note">Ogni città citata nel file dei viaggi compare sulla mappa quando la incontri nel tempo; nei periodi lunghi le città si accendono una dopo l'altra, nell'ordine in cui le hai elencate. Per esportare solo una zona, ingrandiscila prima di premere «Esporta video». Trascina per spostarti, rotellina o pizzico per ingrandire (ingrandendo compaiono i nomi). La velocità del Play segue il tempo reale trascorso tra un viaggio e l'altro.</div>
             <div class="ev-toolbar">
+                <div class="unit-toggle" id="evModeToggle" title="In sequenza: un passo per ogni evento. Cronologico: scorre il tempo reale, gli anni vuoti passano velocemente ma proporzionalmente.">
+                    <button data-mode="seq" class="active">In sequenza</button>
+                    <button data-mode="chrono">Cronologico</button>
+                </div>
+                <span id="evSpeedWrap" style="display:none;">
+                    <select id="evSpeed" title="Velocità nel modo cronologico" style="background:var(--bg); border:1px solid var(--line); color:var(--text); border-radius:8px; padding:7px 8px; font-family:inherit;">
+                        <option value="4">lenta · 4 s/anno</option><option value="2" selected>normale · 2 s/anno</option><option value="1">veloce · 1 s/anno</option>
+                    </select>
+                </span>
                 <div class="unit-toggle" id="evViewToggle">
                     <button data-view="cities">Solo città</button>
                     <button data-view="both" class="active">Città e paesi</button>
                 </div>
                 <button class="del-btn" id="eventsFullBtn" style="padding:7px 14px;">⛶ Schermo intero</button>
+                <span style="flex:1;"></span>
+                <select id="eventsExportSec" title="Durata del video" style="background:var(--bg); border:1px solid var(--line); color:var(--text); border-radius:8px; padding:7px 8px; font-family:inherit;">
+                    <option value="30">video 30 s</option><option value="60" selected>video 60 s</option><option value="90">video 90 s</option>
+                </select>
+                <button class="del-btn" id="eventsExportBtn" style="padding:7px 14px;" title="Registra l'animazione (vista e zoom attuali) e scarica il video">⬇ Esporta video</button>
             </div>
             <svg id="eventsMap" viewBox="0 0 960 500"></svg>
             <div class="tl-controls">
@@ -452,10 +514,11 @@
                 <span class="tl-year-label" id="eventsLabel">—</span>
             </div>
             <div class="section-note" id="eventsCurrentNote" style="margin-top:12px; margin-bottom:0;"></div>
-            <div class="ev-legend ev-note">
-                <span><span class="dot" style="background:#F5A623;"></span>città dei viaggi internazionali</span>
-                <span><span class="dot" style="background:#43C6AC;"></span>città dei viaggi nazionali</span>
-                <span><span class="dot" style="background:#7E90A8;"></span>solo scalo</span>
+            <div class="ev-legend" id="evCatLegend"></div>
+            <div class="ev-legend">
+                <span><span class="dot" style="background:#F5A623;"></span>città dei viaggi all'estero</span>
+                <span><span class="dot" style="background:#EFC76D;"></span>città dei viaggi nazionali</span>
+                <span><span class="dot" style="background:#66788F;"></span>solo scalo</span>
                 <span><span class="dot" style="background:#F5A623; opacity:0.35;"></span>posizione approssimata</span>
                 <span id="evCityCount"></span>
             </div>
@@ -519,8 +582,8 @@
         { name: 'Sud Africa', continent: 'Africa', category: 'visitato', iso: 710, baseDays: 3 },
         { name: 'Malta', continent: 'Europa', category: 'visitato', iso: 470, baseDays: 3 },
         { name: 'Namibia', continent: 'Africa', category: 'visitato', iso: 516, baseDays: 2 },
-        { name: 'Svizzera', continent: 'Europa', category: 'visitato', iso: 756, baseDays: 1 },
-        { name: 'Argentina', continent: 'Sud America', category: 'visitato', iso: 32, baseDays: 1 },
+        { name: 'Svizzera', continent: 'Europa', category: 'visitato_poco', iso: 756, baseDays: 1 },
+        { name: 'Argentina', continent: 'Sud America', category: 'visitato_poco', iso: 32, baseDays: 1 },
         { name: 'Turchia', continent: 'Asia', category: 'attraversato', iso: 792, baseDays: 1 },
         { name: 'Lettonia', continent: 'Europa', category: 'visitato', iso: 428, baseDays: 1 },
         { name: 'Etiopia', continent: 'Africa', category: 'attraversato', iso: 231, baseDays: 0 },
@@ -604,6 +667,9 @@
     // Giorni passati all'estero per paese in cui ti trovavi (stessa base di ABROAD_BY_YEAR), al 05/10/2026.
     const ABROAD_BY_COUNTRY = {"SPAGNA": 29, "SVIZZERA": 1, "ITALIA": 444, "FRANCIA": 133, "CROAZIA": 11, "SLOVENIA": 4, "IRLANDA": 11, "PORTOGALLO": 25, "GERMANIA": 6, "DANIMARCA": 3, "SVEZIA": 6, "NORVEGIA": 4, "REGNO UNITO": 42, "MAROCCO": 8, "ANGOLA": 108, "NAMIBIA": 2, "POLONIA": 32, "INDIA": 28, "MOZAMBICO": 79, "SUD AFRICA": 3, "TANZANIA": 23, "ISRAELE": 71, "OLANDA": 8, "BELGIO": 10, "BRASILE": 51, "TURCHIA": 1, "STATI UNITI": 14, "GIORDANIA": 4, "PALESTINA (CISGIORDANIA)": 5, "MALTA": 3, "UNGHERIA": 9, "LITUANIA": 8, "LETTONIA": 1};
 
+    // Giorni passati in ciascun paese, anno per anno (dal calendario giorno per giorno), al 05/10/2026.
+    const DAYS_BY_YEAR = {"ITALIA":{"1977":86,"1978":365,"1979":365,"1980":366,"1981":365,"1982":365,"1983":365,"1984":366,"1985":365,"1986":365,"1987":365,"1988":366,"1989":365,"1990":365,"1991":365,"1992":366,"1993":365,"1994":365,"1995":365,"1996":366,"1997":365,"1998":351,"1999":243,"2000":160,"2001":358,"2002":363,"2003":292,"2004":140,"2005":40,"2006":29,"2007":27,"2008":68,"2009":275,"2010":52,"2011":34,"2012":25,"2013":57,"2014":6,"2015":16,"2016":54,"2017":133,"2018":19,"2019":8,"2020":9,"2022":29,"2023":17,"2024":30,"2025":11,"2026":16},"SPAGNA":{"1998":14,"1999":122,"2000":206,"2001":7,"2002":2,"2003":11,"2004":43,"2005":304,"2006":295,"2007":325,"2008":102,"2009":34,"2010":189,"2011":169,"2012":122,"2013":219,"2014":333,"2015":290,"2016":118,"2017":148,"2018":281,"2019":310,"2020":357,"2021":350,"2022":332,"2023":348,"2024":324,"2025":343,"2026":222},"SVIZZERA":{"2003":1},"MAROCCO":{"2003":61,"2004":183,"2007":3,"2019":5},"FRANCIA":{"2005":1,"2006":6,"2007":3,"2008":2,"2010":29,"2011":5,"2012":14,"2013":7,"2014":5,"2015":18,"2016":7,"2017":11,"2019":22,"2022":4,"2024":3,"2025":3},"CROAZIA":{"2005":11},"SLOVENIA":{"2005":4},"IRLANDA":{"2005":5,"2008":6},"PORTOGALLO":{"2006":8,"2007":7,"2010":2,"2025":4,"2026":4},"GERMANIA":{"2006":6,"2008":1},"DANIMARCA":{"2006":3},"SVEZIA":{"2006":6},"NORVEGIA":{"2006":4},"REGNO UNITO":{"2006":8,"2008":8,"2015":26},"BRASILE":{"2008":178,"2015":14,"2016":160,"2017":73,"2021":15,"2026":22},"ARGENTINA":{"2008":1},"ANGOLA":{"2009":56,"2010":91,"2011":17},"NAMIBIA":{"2010":2},"SIERRA LEONE":{"2011":140,"2012":149},"POLONIA":{"2012":28,"2013":4},"INDIA":{"2012":28},"MOZAMBICO":{"2013":52,"2016":27},"SUD AFRICA":{"2013":3},"TANZANIA":{"2013":23},"ISRAELE":{"2014":17,"2018":41,"2019":13},"OLANDA":{"2014":4,"2025":4},"BELGIO":{"2015":1,"2019":4,"2026":5},"TURCHIA":{"2018":1},"STATI UNITI":{"2018":14},"GIORDANIA":{"2018":4},"PALESTINA (CISGIORDANIA)":{"2018":5},"MALTA":{"2019":3},"UNGHERIA":{"2024":9},"LITUANIA":{"2026":8},"LETTONIA":{"2026":1}};
+
     // Periodi di residenza ufficiale (dove risultavi vivere anagraficamente), dal file VOYAGES-1.xlsx.
     // Indipendente dai viaggi: conteggio semplice "dove risiedevi", incluse le fasi senza residenza fissa.
     // end: null significa periodo in corso (si estende dinamicamente fino a oggi).
@@ -659,6 +725,7 @@
         vissuto: 'Vissuto',
         lavorato: 'Lavorato',
         visitato: 'Visitato',
+        visitato_poco: 'Visitato poco',
         visitato_lavorato: 'Visitato e lavorato',
         attraversato: 'Attraversato',
         confine: 'Visto dal confine'
@@ -922,12 +989,12 @@
     // (diviso per categoria del paese in cui eri). Il totale "in viaggio" coincide con il tempo in viaggio all'estero.
     const COMP_COLORS = {
         casa: '#F5A623', senzares: '#7E90A8',
-        'viaggio:visitato': '#8BC34A', 'viaggio:vissuto': '#43C6AC', 'viaggio:lavorato': '#4C86C6',
+        'viaggio:visitato': '#8BC34A', 'viaggio:visitato_poco': '#C5E1A5', 'viaggio:vissuto': '#43C6AC', 'viaggio:lavorato': '#4C86C6',
         'viaggio:visitato_lavorato': '#B98BD9', 'viaggio:attraversato': '#E4572E', 'viaggio:confine': '#9AA5B1'
     };
     const COMP_LABELS = {
         casa: 'A casa (nel paese di residenza)', senzares: 'Senza residenza fissa',
-        'viaggio:visitato': 'In viaggio: paesi visitati', 'viaggio:vissuto': 'In viaggio: paesi dove hai vissuto',
+        'viaggio:visitato': 'In viaggio: paesi visitati', 'viaggio:visitato_poco': 'In viaggio: visitati poco', 'viaggio:vissuto': 'In viaggio: paesi dove hai vissuto',
         'viaggio:lavorato': 'In viaggio: paesi dove hai lavorato', 'viaggio:visitato_lavorato': 'In viaggio: visitati e lavorati',
         'viaggio:attraversato': 'In viaggio: paesi attraversati', 'viaggio:confine': 'In viaggio: visti dal confine'
     };
@@ -1016,25 +1083,6 @@
     }
 
     /* ================= RENDER: BARRE PER PAESE ================= */
-    function renderBarList() {
-        const entries = sortedTotals().filter(([name, d]) => d > 0 && isRealVisit(name));
-        const max = entries.length ? entries[0][1] : 1;
-        const el = document.getElementById('barList');
-        if (!entries.length) { el.innerHTML = '<div class="empty">Nessun dato</div>'; return; }
-        el.innerHTML = entries.map(([name, days]) => {
-            const cont = continentOf(name);
-            const pct = Math.max(2, (days / max) * 100);
-            const cat = categoryOf(name);
-            const flag = cat !== 'visitato' ? `● ${CATEGORY_LABELS[cat].toLowerCase()}` : '';
-            return `
-                <div class="bar-row">
-                    <div class="country-name">${name}${flag ? `<span class="cat-flag">${flag}</span>` : ''}</div>
-                    <div class="bar-track"><div class="bar-fill" style="width:${pct}%; background:${continentColor(cont)}"></div></div>
-                    <div class="value">${formatUnit(convertUnit(days, currentUnit), currentUnit)}</div>
-                </div>`;
-        }).join('');
-    }
-
     /* ================= RENDER: DISTRIBUZIONE (continenti / paesi, a schede) ================= */
     let distView = 'continent';
 
@@ -1152,7 +1200,12 @@
     }
 
     /* ================= RENDER: MAPPA MONDO ================= */
-    const BORDER_COLOR = '#3D5A80';
+    // Colori dei paesi per categoria (stessa categorizzazione dell'elenco paesi).
+    // Attraversato e visto dal confine sono grigi scuri, vicini allo sfondo dei paesi mai visti.
+    const MAP_CAT_COLORS = { vissuto: '#E8663D', lavorato: '#4C86C6', visitato: '#43C6AC', visitato_lavorato: '#B98BD9',
+        visitato_poco: '#3E8F82', attraversato: '#3A4658', confine: '#344053' };
+    const MAP_CAT_ORDER = ['vissuto', 'lavorato', 'visitato', 'visitato_lavorato', 'visitato_poco', 'attraversato', 'confine'];
+    const BORDER_COLOR = '#3A4658';
     let cachedWorldFeatures = null;
 
     async function loadWorldAtlas() {
@@ -1171,7 +1224,7 @@
 
         function colorForName(name) {
             const cat = categoryOf(name);
-            if (cat === 'confine' || cat === 'attraversato') return BORDER_COLOR;
+            if (cat === 'confine' || cat === 'attraversato') return MAP_CAT_COLORS[cat];
             if (!(name in rankByName)) return null;
             const t = N <= 1 ? 1 : 1 - (rankByName[name] / (N - 1));
             return d3.interpolateOranges(0.22 + 0.68 * t);
@@ -1287,97 +1340,6 @@
                 }
             }
         });
-    }
-
-    /* ================= RENDER: MAPPA ANIMATA NEL TEMPO ================= */
-    let timelineMapInit = false;
-    let tlIsoToName = {};
-    let tlColorForName = () => null;
-    let tlPlaying = false;
-    let tlInterval = null;
-
-    async function initTimelineMap() {
-        const totals = computeTotals();
-        const ranked = Object.entries(totals).filter(([name, d]) => d > 0 && isRealVisit(name)).sort((a, b) => b[1] - a[1]);
-        const rankByName = {}; ranked.forEach(([name], i) => rankByName[name] = i);
-        const N = ranked.length;
-        const isoByName = {}; COUNTRIES.forEach(c => { if (c.iso !== undefined && c.iso !== null) isoByName[c.name] = String(c.iso).padStart(3, '0'); });
-        tlIsoToName = {}; Object.entries(isoByName).forEach(([name, iso]) => { tlIsoToName[iso] = name; });
-
-        tlColorForName = function (name) {
-            const cat = categoryOf(name);
-            if (cat === 'confine' || cat === 'attraversato') return BORDER_COLOR;
-            if (!(name in rankByName)) return null;
-            const t = N <= 1 ? 1 : 1 - (rankByName[name] / (N - 1));
-            return d3.interpolateOranges(0.22 + 0.68 * t);
-        };
-
-        const svg = d3.select('#timelineMap');
-        svg.selectAll('*').remove();
-
-        let features;
-        try {
-            features = await loadWorldAtlas();
-        } catch (e) {
-            svg.append('text').attr('x', 480).attr('y', 250).attr('text-anchor', 'middle')
-                .attr('fill', '#7E90A8').attr('font-size', '14').text('Mappa non disponibile senza connessione internet');
-            return;
-        }
-        const projection = d3.geoNaturalEarth1().fitSize([960, 500], features);
-        const path = d3.geoPath(projection);
-
-        svg.selectAll('path')
-            .data(features.features)
-            .join('path')
-            .attr('d', path)
-            .attr('fill', 'var(--panel-raised)')
-            .append('title');
-
-        const relevant = allChronologyEntries().filter(e => isRealVisit(e.name));
-        const minYear = relevant.length ? Math.min(...relevant.map(e => e.year)) : 1977;
-        const maxYear = new Date().getFullYear();
-        const slider = document.getElementById('yearSlider');
-        slider.min = minYear; slider.max = maxYear; slider.value = minYear;
-
-        updateTimelineMap(minYear);
-
-        slider.addEventListener('input', () => { stopTimelinePlay(); updateTimelineMap(+slider.value); });
-        document.getElementById('playBtn').addEventListener('click', () => {
-            if (tlPlaying) stopTimelinePlay(); else startTimelinePlay();
-        });
-    }
-
-    function updateTimelineMap(year) {
-        const relevant = allChronologyEntries().filter(e => isRealVisit(e.name) && e.year <= year);
-        const knownNames = new Set(relevant.map(e => e.name));
-        const sel = d3.select('#timelineMap').selectAll('path');
-        sel.attr('fill', d => {
-            const name = tlIsoToName[String(d.id)];
-            return (name && knownNames.has(name.toUpperCase())) ? (tlColorForName(name) || 'var(--panel-raised)') : 'var(--panel-raised)';
-        });
-        sel.select('title').text(d => {
-            const name = tlIsoToName[String(d.id)];
-            return name || (d.properties && d.properties.name) || '';
-        });
-        document.getElementById('yearSlider').value = year;
-        document.getElementById('yearLabel').textContent = `${year} — ${knownNames.size} paesi`;
-    }
-
-    function startTimelinePlay() {
-        tlPlaying = true;
-        document.getElementById('playBtn').textContent = '⏸ Pausa';
-        const slider = document.getElementById('yearSlider');
-        tlInterval = setInterval(() => {
-            const y = +slider.value + 1;
-            if (y > +slider.max) { stopTimelinePlay(); return; }
-            updateTimelineMap(y);
-        }, 450);
-    }
-    function stopTimelinePlay() {
-        tlPlaying = false;
-        document.getElementById('playBtn').textContent = '▶ Play';
-        if (tlInterval) clearInterval(tlInterval);
-        tlInterval = null;
     }
 
     /* ================= RENDER: CATEGORIE PER DURATA ================= */
@@ -1534,59 +1496,102 @@
     }
 
     /* ================= RENDER: FREQUENZA PAESI E CITTÀ ================= */
-    function renderCountryFreq() {
-        const events = effectiveEvents();
-        const perCountry = {};   // paese -> insieme di viaggi in cui è stato visitato (visitato / visitato poco)
-        events.forEach(e => {
-            (e.countries || []).forEach(c => {
-                if (c.tag !== 'visitato' && c.tag !== 'visitato_poco') return;
-                (perCountry[c.name] = perCountry[c.name] || new Set()).add(e.trip);
-            });
-        });
-        const entries = Object.entries(perCountry).map(([n, s]) => [n, s.size]).sort((a, b) => b[1] - a[1]).slice(0, 20);
-        const max = entries.length ? entries[0][1] : 1;
-        document.getElementById('countryFreqList').innerHTML = entries.map(([name, n]) => `
-            <div class="bar-row">
-                <div class="country-name">${displayCountryName(name)}</div>
-                <div class="bar-track"><div class="bar-fill" style="width:${Math.max(3, n / max * 100)}%; background:${continentColor(continentOf(displayCountryName(name)))}"></div></div>
-                <div class="value">${n} ${n === 1 ? 'viaggio' : 'viaggi'}</div>
-            </div>`).join('');
-    }
-
     const CITY_NORM = { 'FRANKFURT': 'FRANCOFORTE', 'FRANCOPORTE': 'FRANCOFORTE', 'BRUIXELLES': 'BRUXELLES', 'MANCHASTER': 'MANCHESTER',
         'BARCELLONA': 'BARCELONA', 'BARCELOA': 'BARCELONA', 'PARIS': 'PARIGI', 'SEVILLA': 'SIVIGLIA', 'MÜNCHEN': 'MONACO',
-        'DOBRECEN': 'DEBRECEN', 'DRAGIUIGNAN': 'DRAGUIGNAN', 'COPANAGHEN': 'COPENAGHEN' };
+        'DOBRECEN': 'DEBRECEN', 'DRAGIUIGNAN': 'DRAGUIGNAN', 'COPANAGHEN': 'COPENAGHEN',
+        'KONAATIPORT': 'KOMATIPOORT', 'IGUAÇU': 'FOZ DE IGUAZU', 'FOZ DE IGUAÇU': 'FOZ DE IGUAZU', 'BESANÇON': 'BESSANÇON' };
     function normCity(s) { const u = String(s).trim().toUpperCase(); return CITY_NORM[u] || u; }
 
-    // Città visitate davvero: una città conta una volta per viaggio. Le città segnate come scalo (solo transito) non contano.
-    function renderCityFreq() {
+    // Città visitate davvero in ciascun viaggio: una città conta una volta per viaggio; la città di partenza e gli scali non contano.
+    function computeTripCities() {
         const events = effectiveEvents();
         const scaliOf = {};
         TRIPS.forEach(t => { scaliOf[t.num] = new Set(t.scali || []); });
         const byTrip = {};
         events.forEach(e => { (byTrip[e.trip] = byTrip[e.trip] || []).push(e); });
-        const perCity = {};
+        const cityTrips = {};
         Object.entries(byTrip).forEach(([trip, evs]) => {
             evs.sort((a, b) => a.date.localeCompare(b.date));
             const home = normCity(evs[0].origin || '');
             const scali = scaliOf[trip] || new Set();
-            const cities = new Set();
-            const add = c => { c = normCity(c); if (c && c !== home && !c.startsWith('(') && !scali.has(c)) cities.add(c); };
+            const add = c => {
+                c = normCity(c);
+                if (!c || c === home || c.startsWith('(') || scali.has(c)) return;
+                (cityTrips[c] = cityTrips[c] || new Set()).add(String(trip));
+            };
             evs.forEach(e => {
                 if (e.dest) add(e.dest);
                 if (e.altri) e.altri.split(/[-,]/).forEach(add);
             });
-            cities.forEach(c => { (perCity[c] = perCity[c] || new Set()).add(trip); });
         });
-        const entries = Object.entries(perCity).map(([n, s]) => [n, s.size]).sort((a, b) => b[1] - a[1]).slice(0, 20);
-        const max = entries.length ? entries[0][1] : 1;
-        document.getElementById('cityFreqList').innerHTML = entries.map(([name, n]) => `
-            <div class="bar-row">
-                <div class="country-name">${titleCase(name)}</div>
-                <div class="bar-track"><div class="bar-fill" style="width:${Math.max(3, n / max * 100)}%; background:var(--teal)"></div></div>
-                <div class="value">${n} ${n === 1 ? 'viaggio' : 'viaggi'}</div>
-            </div>`).join('');
+        return cityTrips;
     }
+    // Paesi realmente visitati (visitato / visitato poco) in ciascun viaggio
+    function computeCountryTrips() {
+        const out = {};
+        effectiveEvents().forEach(e => (e.countries || []).forEach(c => {
+            if (c.tag !== 'visitato' && c.tag !== 'visitato_poco') return;
+            (out[c.name] = out[c.name] || new Set()).add(String(e.trip));
+        }));
+        return out;
+    }
+    function legTouchesCity(e, city) {
+        const toks = (e.route || '').split('-').concat((e.altri || '').split(/[-,]/));
+        return toks.some(t => normCity(t) === city);
+    }
+    function legTouchesCountry(e, name) {
+        return (e.countries || []).some(c => c.name === name && (c.tag === 'visitato' || c.tag === 'visitato_poco'));
+    }
+
+    function freqRows(entries, kind, color) {
+        const max = entries.length ? entries[0][1] : 1;
+        return entries.map(([name, n]) => {
+            const active = eventFilter && eventFilter.kind === kind && eventFilter.value === name;
+            const label = kind === 'city' ? titleCase(name) : displayCountryName(name);
+            const col = kind === 'city' ? 'var(--teal)' : continentColor(continentOf(displayCountryName(name)));
+            return `
+            <div class="bar-row clickable${active ? ' active' : ''}" data-kind="${kind}" data-val="${encodeURIComponent(name)}" title="Mostra i viaggi: ${label}">
+                <div class="country-name">${cityOrCountry(kind, name)}</div>
+                <div class="bar-track"><div class="bar-fill" style="width:${Math.max(3, n / max * 100)}%; background:${col}"></div></div>
+                <div class="value">${n} ${n === 1 ? 'viaggio' : 'viaggi'}</div>
+            </div>`;
+        }).join('');
+    }
+    function cityOrCountry(kind, name) { return kind === 'city' ? cityLabel(name) : displayCountryName(name); }
+
+    function renderCountryFreq() {
+        const entries = Object.entries(computeCountryTrips()).map(([n, s]) => [n, s.size]).sort((a, b) => b[1] - a[1]).slice(0, 20);
+        document.getElementById('countryFreqList').innerHTML = freqRows(entries, 'country');
+    }
+    function renderCityFreq() {
+        const entries = Object.entries(computeTripCities()).map(([n, s]) => [n, s.size]).sort((a, b) => b[1] - a[1]).slice(0, 20);
+        document.getElementById('cityFreqList').innerHTML = freqRows(entries, 'city');
+    }
+
+    /* ---- filtro dell'elenco eventi ---- */
+    let eventFilter = null;       // { kind: 'city' | 'country', value }
+    let eventFilterAll = false;
+    function populateEventFilters() {
+        const cs = computeTripCities(), ct = computeCountryTrips();
+        const cityEl = document.getElementById('evFilterCity'), countryEl = document.getElementById('evFilterCountry');
+        cityEl.innerHTML = '<option value="">Tutte le città</option>' + Object.entries(cs)
+            .sort((a, b) => cityLabel(a[0]).localeCompare(cityLabel(b[0]), 'it'))
+            .map(([n, s]) => `<option value="${encodeURIComponent(n)}">${cityLabel(n)} (${s.size})</option>`).join('');
+        countryEl.innerHTML = '<option value="">Tutti i paesi</option>' + Object.entries(ct)
+            .sort((a, b) => displayCountryName(a[0]).localeCompare(displayCountryName(b[0]), 'it'))
+            .map(([n, s]) => `<option value="${encodeURIComponent(n)}">${displayCountryName(n)} (${s.size})</option>`).join('');
+        cityEl.value = eventFilter && eventFilter.kind === 'city' ? encodeURIComponent(eventFilter.value) : '';
+        countryEl.value = eventFilter && eventFilter.kind === 'country' ? encodeURIComponent(eventFilter.value) : '';
+        document.getElementById('evFilterAll').checked = eventFilterAll;
+        document.getElementById('evFilterClear').style.display = eventFilter ? '' : 'none';
+    }
+    function setEventFilter(kind, value, scroll) {
+        eventFilter = (value && !(eventFilter && eventFilter.kind === kind && eventFilter.value === value)) ? { kind, value } : null;
+        editingEventId = null;
+        renderCityFreq(); renderCountryFreq(); populateEventFilters(); renderEventsTable();
+        if (scroll && eventFilter) document.getElementById('eventsListHead').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    function clearEventFilter() { eventFilter = null; renderCityFreq(); renderCountryFreq(); populateEventFilters(); renderEventsTable(); }
 
     function displayCountryName(upper) {
         const hit = COUNTRIES.find(c => c.name.toUpperCase() === String(upper).toUpperCase());
@@ -1596,51 +1601,79 @@
         return TRIPS.map(t => t.start).concat(extraTrips.map(t => t.startDate));
     }
 
+    const CITY_DISPLAY = { 'MONACO': 'Monaco di Baviera' };
+    function cityLabel(n) { return CITY_DISPLAY[n] || titleCase(n); }
+
     function titleCase(s) {
-        return (s || '').toLowerCase().replace(/(^|\s|-)([a-zà-ú])/g, (m, sep, c) => sep + c.toUpperCase());
+        return (s || '').toLowerCase().replace(/(^|\s|-|')([a-zà-ú])/g, (m, sep, c) => sep + c.toUpperCase());
     }
 
     /* ================= RENDER: ELENCO EVENTI (modificabile) ================= */
+    function renderEventRow(e, hit) {
+        if (editingEventId === e.id) {
+            return `
+                <div class="country-row-edit">
+                    <div class="quick-add-title" style="margin-bottom:10px;">Modifica evento del ${formatDate(e.date)}</div>
+                    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:end;">
+                        <div class="field"><label>Data</label><input type="date" id="evEditDate_${e.id}" value="${e.date}" style="width:150px;"></div>
+                        <div class="field"><label>Tratta (ORIGINE-DESTINAZIONE)</label><input type="text" id="evEditRoute_${e.id}" value="${e.route}" style="width:200px;"></div>
+                        <div class="field"><label>Altri posti</label><input type="text" id="evEditAltri_${e.id}" value="${e.altri}" style="width:180px;"></div>
+                        <div class="field"><label>Come</label><input type="text" id="evEditCome_${e.id}" value="${e.come}" placeholder="AEREO, TRENO..." style="width:140px;"></div>
+                        <button type="button" class="add-btn" style="padding:10px 16px;" onclick="saveEventEdit(${e.id})">Salva</button>
+                        <button type="button" class="del-btn" onclick="cancelEventEdit()">Annulla</button>
+                    </div>
+                </div>`;
+        }
+        const tags = (e.countries || []).map(c => `<span class="cat-flag">${displayCountryName(c.name)} (${c.tag === 'visitato_poco' ? 'visitato poco' : (CATEGORY_LABELS[c.tag] || c.tag)})</span>`).join(' · ');
+        return `
+            <div class="logged-row${hit ? ' ev-hit' : ''}">
+                <div class="logged-left">
+                    <strong>${formatDate(e.date)}</strong>
+                    <span class="cat-flag" style="opacity:1;">viaggio ${e.trip}</span>
+                    <span class="logged-dates">${e.route}${e.altri ? ' · ' + e.altri : ''}${e.come ? ' · ' + e.come : ''}</span>
+                    ${tags ? `<span class="logged-dates">${tags}</span>` : ''}
+                </div>
+                <div style="display:flex; gap:8px;">
+                    <button class="del-btn" onclick="startEventEdit(${e.id})">Modifica</button>
+                    <button class="del-btn" onclick="deleteEvent(${e.id})">Elimina</button>
+                </div>
+            </div>`;
+    }
+
+    function tripHeader(num, count, seq) {
+        const t = TRIPS.find(x => String(x.num) === String(num));
+        const span = t ? `${formatDate(t.start)} → ${formatDate(t.end)}` : '';
+        const dur = t ? Math.round((new Date(t.end) - new Date(t.start)) / 86400000) : null;
+        return `<div class="ev-trip-head">${seq ? `<span class="ev-seq">${seq}</span>` : ''}Viaggio ${num}${span ? ' · ' + span : ''}${dur !== null ? ' · ' + dur + ' gg' : ''} · ${count} ${count === 1 ? 'tratta' : 'tratte'}</div>`;
+    }
+
     function renderEventsTable() {
         const events = effectiveEvents();
         const el = document.getElementById('eventsTable');
-        if (!events.length) { el.innerHTML = '<div class="empty">Nessun evento</div>'; return; }
+        const info = document.getElementById('evFilterInfo');
+        if (!events.length) { el.innerHTML = '<div class="empty">Nessun evento</div>'; info.textContent = ''; return; }
+        if (!eventFilter) { info.textContent = ''; el.innerHTML = events.map(e => renderEventRow(e, false)).join(''); return; }
 
-        el.innerHTML = events.map(e => {
-            if (editingEventId === e.id) {
-                return `
-                    <div class="country-row-edit">
-                        <div class="quick-add-title" style="margin-bottom:10px;">Modifica evento del ${formatDate(e.date)}</div>
-                        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:end;">
-                            <div class="field"><label>Data</label><input type="date" id="evEditDate_${e.id}" value="${e.date}" style="width:150px;"></div>
-                            <div class="field"><label>Tratta (ORIGINE-DESTINAZIONE)</label><input type="text" id="evEditRoute_${e.id}" value="${e.route}" style="width:200px;"></div>
-                            <div class="field"><label>Altri posti</label><input type="text" id="evEditAltri_${e.id}" value="${e.altri}" style="width:180px;"></div>
-                            <div class="field"><label>Come</label><input type="text" id="evEditCome_${e.id}" value="${e.come}" placeholder="AEREO, TRENO..." style="width:140px;"></div>
-                            <button type="button" class="add-btn" style="padding:10px 16px;" onclick="saveEventEdit(${e.id})">Salva</button>
-                            <button type="button" class="del-btn" onclick="cancelEventEdit()">Annulla</button>
-                        </div>
-                    </div>`;
-            }
-            const tags = (e.countries || []).map(c => `<span class="cat-flag">${displayCountryName(c.name)} (${c.tag === 'visitato_poco' ? 'visitato poco' : (CATEGORY_LABELS[c.tag] || c.tag)})</span>`).join(' · ');
-            return `
-                <div class="logged-row">
-                    <div class="logged-left">
-                        <strong>${formatDate(e.date)}</strong>
-                        <span class="cat-flag" style="opacity:1;">viaggio ${e.trip}</span>
-                        <span class="logged-dates">${e.route}${e.altri ? ' · ' + e.altri : ''}${e.come ? ' · ' + e.come : ''}</span>
-                        ${tags ? `<span class="logged-dates">${tags}</span>` : ''}
-                    </div>
-                    <div style="display:flex; gap:8px;">
-                        <button class="del-btn" onclick="startEventEdit(${e.id})">Modifica</button>
-                        <button class="del-btn" onclick="deleteEvent(${e.id})">Elimina</button>
-                    </div>
-                </div>`;
-        }).join('');
+        const { kind, value } = eventFilter;
+        const trips = kind === 'city' ? (computeTripCities()[value] || new Set()) : (computeCountryTrips()[value] || new Set());
+        const touches = e => kind === 'city' ? legTouchesCity(e, value) : legTouchesCountry(e, value);
+        const rel = events.filter(e => trips.has(String(e.trip)));
+        const others = eventFilterAll ? events.filter(e => !trips.has(String(e.trip))) : [];
+        const label = kind === 'city' ? cityLabel(value) : displayCountryName(value);
+        info.innerHTML = `<strong style="color:var(--amber);">${label}</strong>: ${trips.size} ${trips.size === 1 ? 'viaggio' : 'viaggi'}, ${rel.length} tratte (quelle che toccano ${kind === 'city' ? 'la città' : 'il paese'} sono evidenziate). <a href="#" class="open-scheda" style="color:var(--teal);">Apri la scheda di ${label} ›</a>`;
+
+        // raggruppa per viaggio, in ordine cronologico
+        const groups = []; const idx = {};
+        rel.forEach(e => { const k = String(e.trip); if (!(k in idx)) { idx[k] = groups.length; groups.push({ trip: k, evs: [] }); } groups[idx[k]].evs.push(e); });
+        let html = groups.map((g, gi) => tripHeader(g.trip, g.evs.length, gi + 1) + g.evs.map(e => renderEventRow(e, touches(e))).join('')).join('');
+        if (others.length) html += `<div class="ev-sep">Altri eventi (${others.length})</div>` + others.map(e => renderEventRow(e, false)).join('');
+        el.innerHTML = html || '<div class="empty">Nessun viaggio trovato</div>';
     }
 
     function startEventEdit(id) { editingEventId = id; renderEventsTable(); }
     function cancelEventEdit() { editingEventId = null; renderEventsTable(); }
     function deleteEvent(id) {
+        evDirty = true;
         eventDeletes[id] = true;
         saveEventDeletes();
         if (editingEventId === id) editingEventId = null;
@@ -1652,6 +1685,7 @@
         const altri = document.getElementById(`evEditAltri_${id}`).value.trim();
         const come = document.getElementById(`evEditCome_${id}`).value.trim().toUpperCase();
         const parts = route.split('-').map(s => s.trim()).filter(Boolean);
+        evDirty = true;
         eventEdits[id] = { date, route, altri, come, origin: parts[0] || null, dest: parts[parts.length - 1] || null };
         saveEventEdits();
         editingEventId = null;
@@ -1665,6 +1699,7 @@
         renderAbroad();
         renderCountryFreq();
         renderCityFreq();
+        populateEventFilters();
         renderEventsTable();
     }
 
@@ -1674,6 +1709,7 @@
         const entries = Object.entries(totals)
             .filter(([name, d]) => d > 0 || ['confine', 'attraversato'].includes(categoryOf(name)))
             .sort((a, b) => b[1] - a[1]);
+        const maxDays = entries.length ? Math.max(...entries.map(e => e[1]), 1) : 1;
         const el = document.getElementById('countryTable');
         if (!entries.length) { el.innerHTML = '<div class="empty">Nessun dato</div>'; return; }
         el.innerHTML = entries.map(([name, days]) => {
@@ -1713,13 +1749,15 @@
 
             const options = Object.entries(CATEGORY_LABELS).map(([val, lbl]) =>
                 `<option value="${val}" ${val === cat ? 'selected' : ''}>${lbl}</option>`).join('');
+            const barW = days > 0 ? Math.max(2, (days / maxDays) * 100) : 0;
             return `
                 <div class="country-row">
-                    <div class="name-cell"><span class="row-dot" style="background:${continentColor(cont)}"></span>${name}</div>
-                    <select onchange="setCategory('${safe}', this.value)">${options}</select>
+                    <div class="name-cell sch-open" data-sname="${encodeURIComponent(name)}" title="Apri la scheda di ${name}" style="cursor:pointer;"><span class="row-dot" style="background:${continentColor(cont)}"></span><span class="nm">${name}</span></div>
+                    <select class="cat-sel" onchange="setCategory('${safe}', this.value)">${options}</select>
+                    <div class="bar-track"><div class="bar-fill" style="width:${barW}%; background:${continentColor(cont)}"></div></div>
                     <div class="days-cell">${formatUnit(convertUnit(days, currentUnit), currentUnit)}</div>
                     <div class="pct-cell">${pctStr}</div>
-                    <button type="button" class="del-btn edit-btn" onclick="startCountryEdit('${safe}')" title="Modifica">✎</button>
+                    <button type="button" class="del-btn edit-btn" onclick="startCountryEdit('${safe}')" title="Modifica giorni e data di prima conoscenza">✎</button>
                 </div>`;
         }).join('');
     }
@@ -1762,14 +1800,12 @@
     function setCategory(name, value) {
         categoryOverrides[name] = value;
         saveCategories();
-        renderBarList();
         renderDistribution();
         renderComposition();
         renderTimelineChart();
         renderDecadePie();
         renderBuckets();
         renderMap();
-        if (timelineMapInit) initTimelineMap();
     }
 
     /* ================= RENDER: VIAGGI REGISTRATI ================= */
@@ -1855,7 +1891,6 @@
         currentUnit = btn.dataset.unit;
         renderStats();
         renderResidence();
-        renderBarList();
         renderDistribution();
         renderComposition();
         renderCountryTable();
@@ -1878,7 +1913,6 @@
         renderStats();
         renderBirthdays();
         renderResidence();
-        renderBarList();
         renderDistribution();
         renderComposition();
         renderTimelineChart();
@@ -1887,7 +1921,6 @@
         renderCountryTable();
         renderLoggedList();
         if (!mapRendered) { mapRendered = true; renderMap(); }
-        if (!timelineMapInit) { timelineMapInit = true; initTimelineMap(); }
     }
 
     /* ================= EXPORT / IMPORT DATI ================= */
@@ -1966,20 +1999,420 @@
         e.target.value = '';
     });
 
+    /* ================= SCHEDA PAESE / CITTÀ ================= */
+    let schedaState = { kind: 'country', value: 'Francia' };
+    let schedaCharts = [];
+    let schedaInit = false;
+    const MONTH_SHORT = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
+    const MODE_LABELS = { AEREO: 'Aereo', AUTO: 'Auto', TRENO: 'Treno', NAVE: 'Nave / barca' };
+
+    function pluralViaggi(n) { return `${n} ${n === 1 ? 'viaggio' : 'viaggi'}`; }
+    function tripDuration(t) { return Math.max(0, Math.round((new Date(t.end) - new Date(t.start)) / 86400000)); }
+    function ageAtDate(dateStr) { return Math.floor((new Date(dateStr) - new Date(BIRTHDATE)) / 86400000 / 365.25); }
+    // i viaggi del file + quelli registrati a mano nella pagina (contano come viaggi "visitato")
+    function allTripObjs() {
+        const extra = extraTrips.map((t, i) => ({ num: 'r' + (i + 1), start: t.startDate, end: t.endDate, visit: [t.country.toUpperCase()], poco: [], attr: [], lont: [], scali: [], extra: true }));
+        return TRIPS.concat(extra);
+    }
+    function tripRole(t, upper) {
+        if (t.visit.includes(upper)) return 'visitato';
+        if (t.poco.includes(upper)) return 'visitato poco';
+        if (t.attr.includes(upper)) return 'solo attraversato';
+        if (t.lont.includes(upper)) return 'visto da lontano';
+        return '';
+    }
+    function countryTripsOf(display) {
+        const u = display.toUpperCase(), out = { visited: [], transit: [], seen: [] };
+        allTripObjs().forEach(t => {
+            if (t.visit.includes(u) || t.poco.includes(u)) out.visited.push(t);
+            else if (t.attr.includes(u)) out.transit.push(t);
+            else if (t.lont.includes(u)) out.seen.push(t);
+        });
+        return out;
+    }
+    function countryDaysByYear(display) {
+        const by = { ...(DAYS_BY_YEAR[display.toUpperCase()] || {}) };
+        extraTrips.forEach(t => { if (t.country === display) { const y = t.startDate.slice(0, 4); by[y] = (by[y] || 0) + t.days; } });
+        if (display === 'Spagna') {   // la Spagna continua a crescere dopo la data del file
+            const extraDays = Math.max(0, Math.round((new Date(todayStr()) - new Date('2026-10-05')) / 86400000));
+            const y = String(new Date().getFullYear()); by[y] = (by[y] || 0) + extraDays;
+        }
+        return by;
+    }
+    function countOf(list) { const m = {}; list.forEach(x => { m[x] = (m[x] || 0) + 1; }); return Object.entries(m).sort((a, b) => b[1] - a[1]); }
+    function cityCountryName(c) { const k = COUNTRIES.find(x => x.iso === c.i); return k ? k.name : ''; }
+
+    function schedaLinkRows(entries, kind, valueFn, labelFn, max) {
+        const top = entries.slice(0, max || 8);
+        const mx = top.length ? top[0][1] : 1;
+        return top.map(([name, n]) => `
+            <div class="bar-row sch-link" data-skind="${kind}" data-sval="${encodeURIComponent(valueFn(name))}">
+                <div class="country-name">${labelFn(name)}</div>
+                <div class="bar-track"><div class="bar-fill" style="width:${Math.max(4, n / mx * 100)}%; background:var(--teal)"></div></div>
+                <div class="value">${pluralViaggi(n)}</div>
+            </div>`).join('') || '<div class="empty" style="padding:10px 0;">—</div>';
+    }
+
+    function schedaTripsHtml(trips, touchFn, roleFn) {
+        const evs = effectiveEvents();
+        const sorted = trips.slice().sort((a, b) => a.start.localeCompare(b.start));
+        const openAttr = sorted.length <= 12 ? ' open' : '';
+        const toolbar = sorted.length > 1 ? `<div style="margin:0 0 8px;"><button type="button" class="del-btn" data-sch-toggle="1" style="padding:5px 12px; font-size:0.8em;">Apri / chiudi tutti i viaggi</button></div>` : '';
+        const body = sorted.map((t, i) => {
+            const legs = t.extra ? [] : evs.filter(e => String(e.trip) === String(t.num)).sort((a, b) => a.date.localeCompare(b.date));
+            const dur = tripDuration(t);
+            const role = roleFn ? roleFn(t) : '';
+            const head = `<span class="ev-seq">${i + 1}</span>${t.extra ? 'Viaggio registrato' : 'Viaggio ' + t.num} · ${formatDate(t.start)} → ${formatDate(t.end)} · ${dur} gg${role ? ' · ' + role : ''}`;
+            const rows = legs.map(e => `<div class="logged-row${touchFn(e) ? ' ev-hit' : ''}"><div class="logged-left"><strong>${formatDate(e.date)}</strong><span class="logged-dates">${e.route}${e.altri ? ' · ' + e.altri : ''}${e.come ? ' · ' + e.come : ''}</span></div></div>`).join('');
+            return `<details class="sch-trip"${openAttr}><summary class="ev-trip-head">${head}</summary>${rows || '<div class="section-note" style="margin:4px 0 8px;">Nessuna tratta dettagliata.</div>'}</details>`;
+        }).join('');
+        return toolbar + (body || '<div class="empty">Nessun viaggio.</div>');
+    }
+
+    function schedaTile(value, label, sub) {
+        return `<div class="stat"><div class="stat-value" style="font-size:${String(value).length > 9 ? '1.05em' : '1.35em'};">${value}</div><div class="stat-label">${label}</div>${sub ? `<div class="stat-label" style="opacity:0.7; margin-top:2px;">${sub}</div>` : ''}</div>`;
+    }
+
+    function schedaYearsChart(canvasId, byYear, color, unitMode) {
+        const now = new Date().getFullYear();
+        const labels = []; for (let y = 1977; y <= now; y++) labels.push(String(y));
+        const data = labels.map(y => unitMode === 'days' ? convertUnit(byYear[y] || 0, currentUnit) : (byYear[y] || 0));
+        const ch = new Chart(document.getElementById(canvasId), {
+            type: 'bar',
+            data: { labels, datasets: [{ data, backgroundColor: data.map(v => v > 0 ? color : 'rgba(126,144,168,0.18)'), borderRadius: 3, maxBarThickness: 22 }] },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => {
+                    const y = ctx.label, age = ageAtDate(y + '-12-31');
+                    const v = unitMode === 'days' ? formatUnit(ctx.parsed.y, currentUnit) : pluralViaggi(ctx.parsed.y);
+                    return `${v} · a fine anno avevi ${age} anni`;
+                } } } },
+                scales: {
+                    x: { ticks: { color: '#7E90A8', autoSkip: false, maxRotation: 90, minRotation: 90, font: { size: 9 } }, grid: { display: false } },
+                    y: { ticks: { color: '#7E90A8', precision: unitMode === 'days' ? undefined : 0 }, grid: { color: '#24354C' }, beginAtZero: true }
+                }
+            }
+        });
+        schedaCharts.push(ch);
+    }
+    function schedaMonthsChart(canvasId, starts, color) {
+        const counts = new Array(12).fill(0);
+        starts.forEach(s => { counts[+s.slice(5, 7) - 1]++; });
+        schedaCharts.push(new Chart(document.getElementById(canvasId), {
+            type: 'bar',
+            data: { labels: MONTH_SHORT, datasets: [{ data: counts, backgroundColor: color, borderRadius: 4, maxBarThickness: 26 }] },
+            options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#7E90A8' }, grid: { display: false } }, y: { ticks: { color: '#7E90A8', precision: 0, stepSize: 1 }, grid: { color: '#24354C' }, beginAtZero: true } } }
+        }));
+    }
+    function modesRows(legs) {
+        const m = {};
+        legs.forEach(e => modeSegments(e.come).forEach(x => { m[x] = (m[x] || 0) + 1; }));
+        const entries = Object.entries(m).sort((a, b) => b[1] - a[1]);
+        const mx = entries.length ? entries[0][1] : 1;
+        return entries.map(([k, n]) => `
+            <div class="bar-row"><div class="country-name">${MODE_LABELS[k] || titleCase(k)}</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${Math.max(4, n / mx * 100)}%; background:var(--amber)"></div></div>
+            <div class="value">${n} ${n === 1 ? 'tratta' : 'tratte'}</div></div>`).join('') || '<div class="empty" style="padding:10px 0;">Mezzo non indicato nel file.</div>';
+    }
+    function gapText(starts) {
+        if (starts.length < 3) return null;
+        const s = starts.slice().sort();
+        const total = (new Date(s[s.length - 1]) - new Date(s[0])) / 86400000 / 30.44;
+        const avg = total / (s.length - 1);
+        return avg >= 24 ? `ogni ${(avg / 12).toFixed(1).replace('.', ',')} anni` : `ogni ${avg.toFixed(1).replace('.', ',')} mesi`;
+    }
+    function lastSeenText(dateStr) {
+        const months = Math.round((new Date(todayStr()) - new Date(dateStr)) / 86400000 / 30.44);
+        return months >= 24 ? `${(months / 12).toFixed(1).replace('.', ',')} anni fa` : (months <= 0 ? 'in questi giorni' : `${months} mesi fa`);
+    }
+
+    function renderSchedaCountry(name) {
+        const body = document.getElementById('schedaBody');
+        const totals = computeTotals(), life = lifeDaysToday(), m = abroadModel();
+        const days = totals[name] || 0;
+        const upper = name.toUpperCase();
+        const cat = categoryOf(name), cont = continentOf(name);
+        const ranked = Object.entries(totals).filter(([n, d]) => d > 0 && isRealVisit(n)).sort((a, b) => b[1] - a[1]);
+        const rank = ranked.findIndex(([n]) => n === name) + 1;
+        const abroadHere = m.byCountry[name] || 0;
+        const resRow = m.rows[name];
+        const trips = countryTripsOf(name);
+        const visited = trips.visited;
+        const starts = visited.map(t => t.start);
+        const durs = visited.map(tripDuration);
+        const longest = visited.length ? visited.reduce((a, b) => tripDuration(b) > tripDuration(a) ? b : a) : null;
+        const by = countryDaysByYear(name);
+        const yearsWith = Object.keys(by).filter(y => by[y] > 0).sort();
+        const fs = firstSeenOf(name);
+        const firstDate = fs && fs.year ? `${String(fs.month || 1).padStart(2, '0')}/${fs.year}` : (starts.length ? formatDate(starts.slice().sort()[0]) : '—');
+        const firstAge = fs && fs.year ? ageAtDate(`${fs.year}-${String(fs.month || 1).padStart(2, '0')}-15`) : null;
+        const lastEnd = visited.length ? visited.map(t => t.end).sort().slice(-1)[0] : null;
+        const bd = computeBirthdayCounts()[name] || 0;
+        const evs = effectiveEvents();
+        const legs = evs.filter(e => visited.some(t => String(t.num) === String(e.trip)) && legTouchesCountry(e, upper));
+        const co = countOf([].concat(...visited.map(t => t.visit.concat(t.poco).filter(c => c !== upper))));
+        const cityTrips = computeTripCities();
+        const cityRows = MAP_CITIES.filter(c => c.i === (COUNTRIES.find(x => x.name === name) || {}).iso)
+            .map(c => [c.n, (cityTrips[normCity(c.n)] || new Set()).size]).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]);
+        const gap = gapText(starts);
+
+        const tiles = [
+            schedaTile(formatUnit(convertUnit(days, currentUnit), currentUnit), 'tempo trascorso', `${(days / life * 100).toFixed(days / life < 0.01 ? 3 : 2).replace('.', ',')}% della tua vita`),
+            abroadHere > 0 ? schedaTile((abroadHere / m.abroadDays * 100).toFixed(1).replace('.', ',') + '%', 'dei giorni in viaggio all\'estero', `${formatUnit(convertUnit(abroadHere, currentUnit), currentUnit)} da visitatore`) : '',
+            resRow && resRow.days > 0 ? schedaTile(formatUnit(convertUnit(resRow.days, currentUnit), currentUnit), 'da residente', `${(resRow.days / life * 100).toFixed(1).replace('.', ',')}% della tua vita`) : '',
+            schedaTile(String(visited.length), visited.length === 1 ? 'viaggio in cui ci sei stato' : 'viaggi in cui ci sei stato', `+ ${trips.transit.length} solo attraversato · ${trips.seen.length} visto da lontano`),
+            schedaTile(rank ? '#' + rank : '—', 'in classifica per tempo', rank ? `su ${ranked.length} paesi visitati` : 'non conta tra i visitati'),
+            schedaTile(firstDate, 'prima volta', firstAge !== null ? `a ${firstAge} anni` : ''),
+            schedaTile(lastEnd ? formatDate(lastEnd) : '—', 'ultimo viaggio', lastEnd ? lastSeenText(lastEnd) : ''),
+            visited.length ? schedaTile((durs.reduce((a, b) => a + b, 0) / durs.length).toFixed(1).replace('.', ',') + ' gg', 'durata media di un viaggio', longest ? `il più lungo: ${tripDuration(longest)} gg (${longest.extra ? 'registrato' : 'viaggio ' + longest.num})` : '') : '',
+            gap ? schedaTile(gap, 'frequenza media dei viaggi', '') : '',
+            bd > 0 ? schedaTile(String(bd), bd === 1 ? 'compleanno festeggiato qui' : 'compleanni festeggiati qui', '') : ''
+        ].join('');
+
+        const yearsText = yearsWith.length && yearsWith.length <= 30
+            ? yearsWith.map(y => `${y} <span style="opacity:.6">(${ageAtDate(y + '-12-31')} anni)</span>`).join(' · ')
+            : (yearsWith.length ? `Presente in ${yearsWith.length} anni diversi, dal ${yearsWith[0]} al ${yearsWith[yearsWith.length - 1]}.` : 'Nessun giorno registrato.');
+
+        body.innerHTML = `
+            <div class="map-panel">
+                <div class="section-head"><h2>${name}</h2></div>
+                <div class="sch-badges">
+                    <span class="sch-badge">${continentOf(name)}</span>
+                    <span class="sch-badge" style="border-color:${MAP_CAT_COLORS[cat] || 'var(--line)'}; color:var(--text);">${CATEGORY_LABELS[cat] || cat}</span>
+                    ${trips.transit.length + trips.seen.length > 0 ? `<span class="sch-badge">ci sei passato o l'hai visto da lontano ${trips.transit.length + trips.seen.length} ${trips.transit.length + trips.seen.length === 1 ? 'volta' : 'volte'}</span>` : ''}
+                </div>
+                <div class="sch-tiles">${tiles}</div>
+                <div class="section-head"><h2 style="font-size:0.95em;">I tuoi anni in ${name}</h2></div>
+                <div class="section-note">Giorni passati nel paese anno per anno (le barre piene sono gli anni in cui ci sei stato).</div>
+                <div class="big-pie-wrap" style="max-width:100%; height:250px;"><canvas id="schedaYears"></canvas></div>
+                <div class="section-note" style="margin-top:10px;">${yearsText}</div>
+            </div>
+            <div class="main-grid">
+                <div class="panel">
+                    <h2 style="margin-bottom:6px; font-size:1em;">In che mese ci vai</h2>
+                    <div class="section-note">Viaggi per mese di partenza.</div>
+                    <div style="height:200px;"><canvas id="schedaMonths"></canvas></div>
+                </div>
+                <div class="panel">
+                    <h2 style="margin-bottom:12px; font-size:1em;">Come ci arrivi</h2>
+                    ${modesRows(legs)}
+                </div>
+            </div>
+            <div class="main-grid">
+                <div class="panel">
+                    <h2 style="margin-bottom:12px; font-size:1em;">Città visitate in ${name}</h2>
+                    ${schedaLinkRows(cityRows, 'city', n => n, n => cityLabel(n), 10)}
+                </div>
+                <div class="panel">
+                    <h2 style="margin-bottom:12px; font-size:1em;">Visitati negli stessi viaggi</h2>
+                    ${schedaLinkRows(co, 'country', n => displayCountryName(n), n => displayCountryName(n), 8)}
+                </div>
+            </div>
+            <div class="list-panel">
+                <div class="section-head"><h2>I viaggi in dettaglio (${visited.length}${trips.transit.length + trips.seen.length ? ' + ' + (trips.transit.length + trips.seen.length) + ' di passaggio' : ''})</h2></div>
+                <div class="section-note">In ordine cronologico, numerati; le tratte che toccano davvero il paese sono evidenziate.</div>
+                ${schedaTripsHtml(visited.concat(trips.transit, trips.seen), e => legTouchesCountry(e, upper), t => tripRole(t, upper))}
+            </div>`;
+        schedaYearsChartSafe('schedaYears', by, continentColor(cont), 'days');
+        if (visited.length) schedaMonthsChart('schedaMonths', starts, '#43C6AC'); else { const w = document.getElementById('schedaMonths').parentElement; w.style.height = 'auto'; w.innerHTML = '<div class="empty">Nessun viaggio da mostrare.</div>'; }
+    }
+    function schedaYearsChartSafe(id, by, color, mode) { try { schedaYearsChart(id, by, color, mode); } catch (e) { /* grafico non disponibile */ } }
+
+    function renderSchedaCity(name) {
+        const body = document.getElementById('schedaBody');
+        const key = normCity(name);
+        const c = MAP_CITIES.find(x => x.n === name) || {};
+        const tripSet = computeTripCities()[key] || new Set();
+        const all = allTripObjs();
+        const visited = all.filter(t => tripSet.has(String(t.num)));
+        const scaliTrips = all.filter(t => !tripSet.has(String(t.num)) && (t.scali || []).includes(key));
+        const starts = visited.map(t => t.start);
+        const durs = visited.map(tripDuration);
+        const evs = effectiveEvents();
+        const legs = evs.filter(e => tripSet.has(String(e.trip)) && legTouchesCity(e, key));
+        const countryName = cityCountryName(c);
+        const total = all.length;
+        const gap = gapText(starts);
+        const sortedStarts = starts.slice().sort();
+        const byYear = {}; starts.forEach(s => { const y = s.slice(0, 4); byYear[y] = (byYear[y] || 0) + 1; });
+        const yearsWith = Object.keys(byYear).sort();
+        // altre città / paesi negli stessi viaggi
+        const coCities = {};
+        Object.entries(computeTripCities()).forEach(([cn, set]) => { if (cn === key) return; let n = 0; set.forEach(t => { if (tripSet.has(t)) n++; }); if (n) coCities[cn] = n; });
+        const coCityRows = Object.entries(coCities).sort((a, b) => b[1] - a[1]);
+        const coCountries = countOf([].concat(...visited.map(t => t.visit.concat(t.poco))));
+        const sumDays = durs.reduce((a, b) => a + b, 0);
+        const domesticOnly = !visited.length && !scaliTrips.length;
+
+        const tiles = [
+            schedaTile(String(visited.length), visited.length === 1 ? 'viaggio in cui ci sei stato' : 'viaggi in cui ci sei stato', total ? `${(visited.length / total * 100).toFixed(1).replace('.', ',')}% dei tuoi ${total} viaggi` : ''),
+            schedaTile(String(scaliTrips.length), scaliTrips.length === 1 ? 'volta solo di passaggio (scalo)' : 'volte solo di passaggio (scalo)', 'non conta come visita'),
+            schedaTile(sortedStarts.length ? formatDate(sortedStarts[0]) : (c.d ? formatDate(c.d) : '—'), 'prima volta', sortedStarts.length ? `a ${ageAtDate(sortedStarts[0])} anni` : (domesticOnly ? 'compare nei viaggi nazionali' : '')),
+            schedaTile(sortedStarts.length ? formatDate(visited.map(t => t.end).sort().slice(-1)[0]) : '—', 'ultimo viaggio', sortedStarts.length ? lastSeenText(visited.map(t => t.end).sort().slice(-1)[0]) : ''),
+            visited.length ? schedaTile((sumDays / visited.length).toFixed(1).replace('.', ',') + ' gg', 'durata media dei viaggi che la includono', 'il viaggio intero, non solo la città') : '',
+            visited.length ? schedaTile(formatUnit(convertUnit(sumDays, currentUnit), currentUnit), 'tempo totale di quei viaggi', 'non sono i giorni passati in città') : '',
+            gap ? schedaTile(gap, 'frequenza media', '') : ''
+        ].join('');
+
+        const yearsText = yearsWith.length ? yearsWith.map(y => `${y} <span style="opacity:.6">(${ageAtDate(y + '-12-31')} anni${byYear[y] > 1 ? ' · ' + byYear[y] + ' volte' : ''})</span>`).join(' · ') : 'Nessun viaggio all\'estero registrato qui.';
+
+        body.innerHTML = `
+            <div class="map-panel">
+                <div class="section-head"><h2>${cityLabel(name)}</h2></div>
+                <div class="sch-badges">
+                    ${countryName ? `<span class="sch-badge sch-link" data-skind="country" data-sval="${encodeURIComponent(countryName)}" title="Apri la scheda di ${countryName}">${countryName} ›</span>` : ''}
+                    ${c.a ? '<span class="sch-badge">posizione sulla mappa approssimata</span>' : ''}
+                    ${domesticOnly ? '<span class="sch-badge">città dei viaggi nazionali</span>' : ''}
+                </div>
+                <div class="sch-tiles">${tiles}</div>
+                <div class="section-head"><h2 style="font-size:0.95em;">I tuoi anni a ${cityLabel(name)}</h2></div>
+                <div class="section-note">Viaggi per anno che includono la città (le barre piene sono gli anni in cui ci sei andato).</div>
+                <div class="big-pie-wrap" style="max-width:100%; height:250px;"><canvas id="schedaYears"></canvas></div>
+                <div class="section-note" style="margin-top:10px;">${yearsText}</div>
+            </div>
+            <div class="main-grid">
+                <div class="panel">
+                    <h2 style="margin-bottom:6px; font-size:1em;">In che mese ci vai</h2>
+                    <div class="section-note">Viaggi per mese di partenza.</div>
+                    <div style="height:200px;"><canvas id="schedaMonths"></canvas></div>
+                </div>
+                <div class="panel">
+                    <h2 style="margin-bottom:12px; font-size:1em;">Come ci arrivi</h2>
+                    ${modesRows(legs)}
+                </div>
+            </div>
+            <div class="main-grid">
+                <div class="panel">
+                    <h2 style="margin-bottom:12px; font-size:1em;">Altre città negli stessi viaggi</h2>
+                    ${schedaLinkRows(coCityRows, 'city', n => n, n => cityLabel(n), 10)}
+                </div>
+                <div class="panel">
+                    <h2 style="margin-bottom:12px; font-size:1em;">Paesi negli stessi viaggi</h2>
+                    ${schedaLinkRows(coCountries, 'country', n => displayCountryName(n), n => displayCountryName(n), 8)}
+                </div>
+            </div>
+            <div class="list-panel">
+                <div class="section-head"><h2>I viaggi in dettaglio (${visited.length}${scaliTrips.length ? ' + ' + scaliTrips.length + ' di passaggio' : ''})</h2></div>
+                <div class="section-note">In ordine cronologico, numerati; le tratte che nominano la città sono evidenziate.</div>
+                ${schedaTripsHtml(visited.concat(scaliTrips), e => legTouchesCity(e, key), t => (tripSet.has(String(t.num)) ? 'visitata' : 'solo scalo'))}
+            </div>`;
+        const labels = [];
+        schedaYearsChartSafe('schedaYears', byYear, 'rgba(245,166,35,1)', 'trips');
+        if (visited.length) schedaMonthsChart('schedaMonths', starts, '#F5A623'); else { const w = document.getElementById('schedaMonths').parentElement; w.style.height = 'auto'; w.innerHTML = '<div class="empty">Nessun viaggio da mostrare.</div>'; }
+    }
+
+    function renderScheda() {
+        schedaCharts.forEach(ch => { try { ch.destroy(); } catch (e) {} });
+        schedaCharts = [];
+        populateSchedaSelect();
+        if (schedaState.kind === 'country') renderSchedaCountry(schedaState.value);
+        else renderSchedaCity(schedaState.value);
+        setTimeout(initNoteClamps, 60);
+    }
+    function populateSchedaSelect() {
+        const sel = document.getElementById('schedaSelect');
+        document.querySelectorAll('#schedaKind button').forEach(b => b.classList.toggle('active', b.dataset.kind === schedaState.kind));
+        if (schedaState.kind === 'country') {
+            const totals = computeTotals();
+            sel.innerHTML = COUNTRIES.map(c => c.name).sort((a, b) => a.localeCompare(b, 'it')).map(n => {
+                const d = totals[n] || 0;
+                return `<option value="${encodeURIComponent(n)}">${n}${d > 0 ? ' · ' + formatUnit(convertUnit(d, currentUnit), currentUnit) : ''}</option>`;
+            }).join('');
+        } else {
+            const ct = computeTripCities();
+            sel.innerHTML = MAP_CITIES.slice().sort((a, b) => cityLabel(a.n).localeCompare(cityLabel(b.n), 'it')).map(c => {
+                const n = (ct[normCity(c.n)] || new Set()).size;
+                return `<option value="${encodeURIComponent(c.n)}">${cityLabel(c.n)}${n ? ' (' + pluralViaggi(n) + ')' : ''}</option>`;
+            }).join('');
+        }
+        sel.value = encodeURIComponent(schedaState.value);
+        if (sel.value !== encodeURIComponent(schedaState.value)) { sel.selectedIndex = 0; schedaState.value = decodeURIComponent(sel.value); }
+    }
+    function openScheda(kind, value) {
+        schedaState = { kind, value };
+        showTab('scheda');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    function initScheda() {
+        document.getElementById('schedaKind').addEventListener('click', (e) => {
+            const b = e.target.closest('button'); if (!b || b.dataset.kind === schedaState.kind) return;
+            schedaState = { kind: b.dataset.kind, value: b.dataset.kind === 'country' ? 'Francia' : 'MARSIGLIA' };
+            renderScheda();
+        });
+        document.getElementById('schedaSelect').addEventListener('change', (e) => { schedaState.value = decodeURIComponent(e.target.value); renderScheda(); });
+        document.getElementById('schedaToEvents').addEventListener('click', () => {
+            if (schedaState.kind === 'country') setEventFilter('country', schedaState.value.toUpperCase(), false);
+            else setEventFilter('city', normCity(schedaState.value), false);
+            showTab('eventi');
+            setTimeout(() => document.getElementById('eventsListHead').scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+        });
+        document.getElementById('schedaBody').addEventListener('click', (e) => {
+            const t = e.target.closest('[data-sch-toggle]');
+            if (t) { const ds = [...document.querySelectorAll('#schedaBody details.sch-trip')]; const anyClosed = ds.some(d => !d.open); ds.forEach(d => { d.open = anyClosed; }); return; }
+            const l = e.target.closest('.sch-link');
+            if (l) openScheda(l.dataset.skind, decodeURIComponent(l.dataset.sval));
+        });
+    }
+
+    /* ================= NOTE LUNGHE: 2 righe + «…», toccando si leggono per intero ================= */
+    function initNoteClamps() {
+        document.querySelectorAll('.section-note, .quick-add-hint').forEach(el => {
+            if (['importStatus', 'evFilterInfo', 'eventsCurrentNote'].includes(el.id) || el.classList.contains('open')) return;
+            if (el.offsetParent === null) return;           // scheda nascosta: la si misura quando diventa visibile
+            el.classList.add('clamp');
+            if (el.scrollHeight > el.clientHeight + 1) { el.dataset.clamped = '1'; el.title = 'Tocca per leggere tutto'; }
+            else { el.classList.remove('clamp'); delete el.dataset.clamped; el.removeAttribute('title'); }
+        });
+    }
+    document.addEventListener('click', (e) => {
+        const n = e.target.closest('.section-note, .quick-add-hint');
+        if (n && n.dataset.clamped) { n.classList.toggle('open'); if (!n.classList.contains('open')) n.classList.add('clamp'); }
+    });
+    let clampTimer = null;
+    window.addEventListener('resize', () => { clearTimeout(clampTimer); clampTimer = setTimeout(initNoteClamps, 200); });
+
     /* ================= TAB SWITCHING ================= */
     let eventiTabInit = false;
     let mappaEventiTabInit = false;
 
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const tab = btn.dataset.tab;
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-            document.getElementById('tab-' + tab).classList.add('active');
-            if (tab === 'eventi' && !eventiTabInit) { eventiTabInit = true; renderEventsTab(); }
-            if (tab === 'mappa-eventi' && !mappaEventiTabInit) { mappaEventiTabInit = true; initEventsMap(); }
+    function showTab(tab) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        document.getElementById('tab-' + tab).classList.add('active');
+        if (tab === 'eventi' && !eventiTabInit) { eventiTabInit = true; renderEventsTab(); }
+        if (tab === 'mappa-eventi' && (!mappaEventiTabInit || evDirty)) { mappaEventiTabInit = true; evDirty = false; initEventsMap(); }
+        if (tab === 'scheda') { if (!schedaInit) { schedaInit = true; initScheda(); } renderScheda(); }
+        setTimeout(initNoteClamps, 60);
+    }
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', () => showTab(btn.dataset.tab)));
+    document.getElementById('countryTable').addEventListener('click', (e) => {
+        const n = e.target.closest('.sch-open');
+        if (n) openScheda('country', decodeURIComponent(n.dataset.sname));
+    });
+
+    ['cityFreqList', 'countryFreqList'].forEach(id => {
+        document.getElementById(id).addEventListener('click', (e) => {
+            const row = e.target.closest('.bar-row.clickable');
+            if (row) setEventFilter(row.dataset.kind, decodeURIComponent(row.dataset.val), true);
         });
+    });
+    document.getElementById('evFilterCity').addEventListener('change', (e) => {
+        const v = e.target.value ? decodeURIComponent(e.target.value) : '';
+        eventFilter = v ? { kind: 'city', value: v } : null; editingEventId = null;
+        renderCityFreq(); renderCountryFreq(); populateEventFilters(); renderEventsTable();
+    });
+    document.getElementById('evFilterCountry').addEventListener('change', (e) => {
+        const v = e.target.value ? decodeURIComponent(e.target.value) : '';
+        eventFilter = v ? { kind: 'country', value: v } : null; editingEventId = null;
+        renderCityFreq(); renderCountryFreq(); populateEventFilters(); renderEventsTable();
+    });
+    document.getElementById('evFilterAll').addEventListener('change', (e) => { eventFilterAll = e.target.checked; renderEventsTable(); });
+    document.getElementById('evFilterClear').addEventListener('click', clearEventFilter);
+    document.getElementById('evFilterInfo').addEventListener('click', (e) => {
+        if (!e.target.closest('.open-scheda') || !eventFilter) return;
+        e.preventDefault();
+        if (eventFilter.kind === 'country') openScheda('country', displayCountryName(eventFilter.value));
+        else { const c = MAP_CITIES.find(x => normCity(x.n) === eventFilter.value); openScheda('city', c ? c.n : eventFilter.value); }
     });
 
     document.getElementById('avgFrom').addEventListener('change', renderAverageTrips);
@@ -1996,6 +2429,14 @@
     let evPlaying = false;
     let evInterval = null;
     let evShowCountries = true;
+    let evSteps = [];
+    let evStepDays = [];
+    let evMode = 'seq';          // 'seq' = un passo per ogni evento/città; 'chrono' = tempo reale proporzionale alle date
+    let evChronoSpeed = 2;       // secondi di animazione per ogni anno reale
+    let evRaf = null;
+    let evCurIdx = 0;
+    let evDirty = false;
+    let evExporting = false, evExportCancel = false;
     let evZoomK = 1;
     let evDotsKey = '';
     let evControlsBound = false;
@@ -2007,6 +2448,21 @@
         g.select('text').attr('font-size', 8 / evZoomK).attr('display', evZoomK >= 3 ? null : 'none');
     }
 
+    let evInitialTransform = null;
+    function evBaseTransform() { return evInitialTransform || d3.zoomIdentity; }
+    // A schermo intero la mappa riempie lo schermo: se lo schermo è più "alto" del mondo (telefono in verticale)
+    // mostra una fascia del mondo a tutta altezza, spostabile col dito, invece di una striscia piccola.
+    function evApplyViewport() {
+        const svgEl = document.getElementById('eventsMap');
+        if (!svgEl || !window.__evSvg || !window.__evZoom) return;
+        const full = document.getElementById('eventsMapPanel').classList.contains('ev-full');
+        let vw = 960;
+        if (full) { const w = svgEl.clientWidth, hh = svgEl.clientHeight; if (w > 0 && hh > 0) vw = Math.max(260, Math.min(960, Math.round(500 * w / hh))); }
+        svgEl.setAttribute('viewBox', `0 0 ${vw} 500`);
+        evInitialTransform = d3.zoomIdentity.translate(-(960 - vw) / 2, 0);
+        window.__evSvg.call(window.__evZoom.transform, evInitialTransform);
+    }
+
     function evSetFull(on) {
         const p = document.getElementById('eventsMapPanel');
         p.classList.toggle('ev-full', on);
@@ -2014,22 +2470,46 @@
         document.getElementById('eventsCloseFullBtn').style.display = on ? '' : 'none';
         document.getElementById('eventsFullBtn').style.display = on ? 'none' : '';
         try {
-            if (on && p.requestFullscreen && !document.fullscreenElement) p.requestFullscreen().catch(() => {});
-            if (!on && document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+            if (on && p.requestFullscreen && !document.fullscreenElement) {
+                p.requestFullscreen().then(() => {
+                    // sul telefono la mappa (larga) sta meglio in orizzontale: ci proviamo, se non è permesso resta com'è
+                    try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => {}); } catch (e) {}
+                }).catch(() => {});
+            }
+            if (!on) {
+                try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) {}
+                if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+            }
         } catch (e) { /* resta il pieno schermo "a finestra", chiudibile col pulsante */ }
+        setTimeout(evApplyViewport, 150);
     }
 
     function bindEventsMapControls() {
         if (evControlsBound) return;
         evControlsBound = true;
         const slider = document.getElementById('eventsSlider');
-        slider.addEventListener('input', () => { stopEventsPlay(); updateEventsMap(+slider.value); });
+        slider.addEventListener('input', () => {
+            stopEventsPlay();
+            if (evMode === 'chrono') { const day = +slider.value; updateEventsMap(evIndexForDay(day), { labelDate: evDateOfDay(day) }); }
+            else updateEventsMap(+slider.value);
+        });
+        document.getElementById('evModeToggle').addEventListener('click', (e) => {
+            const btn = e.target.closest('button');
+            if (!btn || btn.dataset.mode === evMode) return;
+            stopEventsPlay();
+            document.querySelectorAll('#evModeToggle button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            evMode = btn.dataset.mode;
+            evSyncSlider();
+            updateEventsMap(evCurIdx);
+        });
+        document.getElementById('evSpeed').addEventListener('change', (e) => { evChronoSpeed = +e.target.value; });
         document.getElementById('eventsPlayBtn').addEventListener('click', () => {
             if (evPlaying) stopEventsPlay(); else startEventsPlay();
         });
         document.getElementById('eventsResetZoomBtn').addEventListener('click', () => {
             if (window.__evSvg && window.__evZoom) {
-                window.__evSvg.transition().duration(400).call(window.__evZoom.transform, d3.zoomIdentity);
+                window.__evSvg.transition().duration(400).call(window.__evZoom.transform, evBaseTransform());
             }
         });
         document.getElementById('evViewToggle').addEventListener('click', (e) => {
@@ -2038,10 +2518,17 @@
             document.querySelectorAll('#evViewToggle button').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             evShowCountries = btn.dataset.view === 'both';
-            updateEventsMap(+slider.value);
+            updateEventsMap(evCurIdx, evMode === 'chrono' ? { labelDate: evDateOfDay(+slider.value) } : undefined);
         });
         document.getElementById('eventsFullBtn').addEventListener('click', () => evSetFull(true));
+        document.getElementById('eventsExportBtn').addEventListener('click', () => {
+            if (evExporting) { evExportCancel = true; return; }
+            exportEventsVideo(+document.getElementById('eventsExportSec').value);
+        });
         document.getElementById('eventsCloseFullBtn').addEventListener('click', () => evSetFull(false));
+        window.addEventListener('resize', () => {
+            if (document.getElementById('eventsMapPanel').classList.contains('ev-full')) setTimeout(evApplyViewport, 150);
+        });
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && document.getElementById('eventsMapPanel').classList.contains('ev-full')) evSetFull(false);
         });
@@ -2058,15 +2545,11 @@
         const isoByName = {}; COUNTRIES.forEach(c => { if (c.iso !== undefined && c.iso !== null) isoByName[c.name] = String(c.iso).padStart(3, '0'); });
         evIsoToName = {}; Object.entries(isoByName).forEach(([name, iso]) => { evIsoToName[iso] = name; });
 
-        evColorForName = function (name) {
-            const cat = categoryOf(name);
-            if (cat === 'confine' || cat === 'attraversato') return BORDER_COLOR;
-            if (!(name in rankByName)) return null;
-            const t = N <= 1 ? 1 : 1 - (rankByName[name] / (N - 1));
-            return d3.interpolateOranges(0.22 + 0.68 * t);
-        };
+        evColorForName = function (name) { return MAP_CAT_COLORS[categoryOf(name)] || null; };
 
         bindEventsMapControls();
+        stopEventsPlay();
+        buildEvSteps();
         const svg = d3.select('#eventsMap');
         svg.selectAll('*').remove();
         let features;
@@ -2104,11 +2587,11 @@
         window.__evSvg = svg;
 
         const slider = document.getElementById('eventsSlider');
-        const events = effectiveEvents();
         slider.min = 0;
-        slider.max = Math.max(0, events.length - 1);
-        slider.value = 0;
+        evCurIdx = 0;
+        evSyncSlider();
         updateEventsMap(0);
+        evApplyViewport();
     }
 
     // Centroidi approssimativi (lat, lon) dei paesi che compaiono come destinazione evento,
@@ -2151,9 +2634,11 @@
         'TANGERI': [35.76, -5.83], 'TEL AVIV': [32.08, 34.78], 'VARSAVIA': [52.23, 21.01], 'VENEZIA': [45.44, 12.33],
         'ZWOLLE': [52.52, 6.10],
     };
-    // Tutte le città citate nel file (rotte, altri posti, scali, residenze, periodi nazionali): nome, lat, lon, prima data in cui compaiono,
+    // Tutte le città citate nel file (rotte, altri posti, scali, residenze, periodi nazionali): nome, lat, lon, data in cui compaiono.
+    // Per i periodi lunghi (da 6 giorni) con almeno 3 città elencate, le città sono distribuite una dopo l'altra nell'arco del periodo, nell'ordine in cui sono elencate nel file.
+    // i = codice ISO numerico del paese in cui si trova la città.
     // k = v (viaggi internazionali) | n (solo viaggi nazionali) | s (solo scalo); a = 1 se la posizione è approssimata.
-    const MAP_CITIES = [{"n":"ASCOLI PICENO","la":42.8535,"lo":13.5739,"d":"1977-10-07","k":"n","a":0},{"n":"AURONZO","la":46.5592,"lo":12.4246,"d":"1977-10-07","k":"n","a":0},{"n":"BAGOLINO","la":45.8252,"lo":10.4618,"d":"1977-10-07","k":"n","a":0},{"n":"BOLOGNA","la":44.4938,"lo":11.3387,"d":"1977-10-07","k":"n","a":0},{"n":"CATANIA","la":37.4922,"lo":15.0704,"d":"1977-10-07","k":"n","a":0},{"n":"FERRARA","la":44.838,"lo":11.6206,"d":"1977-10-07","k":"n","a":0},{"n":"FIRENZE","la":43.7792,"lo":11.2463,"d":"1977-10-07","k":"n","a":0},{"n":"GELA","la":37.0738,"lo":14.2404,"d":"1977-10-07","k":"n","a":0},{"n":"MANTOVA","la":45.1603,"lo":10.7978,"d":"1977-10-07","k":"n","a":0},{"n":"MESSINA","la":38.1939,"lo":15.5526,"d":"1977-10-07","k":"n","a":0},{"n":"MODENA","la":44.6478,"lo":10.9254,"d":"1977-10-07","k":"n","a":0},{"n":"MONASTIER DI TREVISO","la":45.6,"lo":12.43,"d":"1977-10-07","k":"v","a":0},{"n":"NAPOLI","la":40.8522,"lo":14.2681,"d":"1977-10-07","k":"v","a":0},{"n":"NISCEMI","la":37.1465,"lo":14.3938,"d":"1977-10-07","k":"n","a":0},{"n":"PADOVA","la":45.408,"lo":11.8859,"d":"1977-10-07","k":"n","a":0},{"n":"PARMA","la":44.7993,"lo":10.3262,"d":"1977-10-07","k":"n","a":0},{"n":"PAVIA","la":45.1921,"lo":9.1592,"d":"1977-10-07","k":"n","a":0},{"n":"PORDENONE","la":45.9569,"lo":12.6605,"d":"1977-10-07","k":"n","a":0},{"n":"SAN GIMIGNANO","la":43.4738,"lo":11.0297,"d":"1977-10-07","k":"n","a":0},{"n":"SAN GIUSEPPE VESUVIANO","la":40.8356,"lo":14.5049,"d":"1977-10-07","k":"n","a":0},{"n":"SIENA","la":43.3182,"lo":11.3306,"d":"1977-10-07","k":"n","a":0},{"n":"TREVISO","la":45.6667,"lo":12.2416,"d":"1977-10-07","k":"n","a":0},{"n":"TRIESTE","la":45.6495,"lo":13.7768,"d":"1977-10-07","k":"v","a":0},{"n":"UDINE","la":46.0693,"lo":13.2371,"d":"1977-10-07","k":"n","a":0},{"n":"VENEZIA","la":45.44,"lo":12.33,"d":"1977-10-07","k":"v","a":0},{"n":"VERONA","la":45.4385,"lo":10.9938,"d":"1977-10-07","k":"n","a":0},{"n":"RIMINI","la":44.0575,"lo":12.5653,"d":"1987-05-01","k":"v","a":0},{"n":"SAN MARINO","la":43.94,"lo":12.46,"d":"1987-05-01","k":"v","a":0},{"n":"FUENGIROLA","la":36.54,"lo":-4.6247,"d":"1998-08-12","k":"v","a":0},{"n":"MALAGA","la":36.72,"lo":-4.42,"d":"1998-08-12","k":"v","a":0},{"n":"MIJAS","la":36.5958,"lo":-4.6373,"d":"1998-08-12","k":"v","a":0},{"n":"TORREMOLINOS","la":36.6204,"lo":-4.4998,"d":"1998-08-12","k":"v","a":0},{"n":"BARCELONA","la":41.39,"lo":2.17,"d":"1999-09-01","k":"v","a":0},{"n":"GRANADA","la":37.1882,"lo":-3.6067,"d":"1999-09-01","k":"v","a":0},{"n":"GRANOLLERS","la":41.608,"lo":2.2877,"d":"1999-09-01","k":"v","a":0},{"n":"MADRID","la":40.42,"lo":-3.7,"d":"1999-09-01","k":"v","a":0},{"n":"MALLORCA","la":39.6953,"lo":3.0176,"d":"1999-09-01","k":"v","a":0},{"n":"MONTSERRAT","la":41.5933,"lo":1.8377,"d":"1999-09-01","k":"v","a":0},{"n":"TOLEDO","la":39.8581,"lo":-4.0226,"d":"1999-09-01","k":"v","a":0},{"n":"TOSSA DE MAR","la":41.7167,"lo":2.9333,"d":"1999-09-01","k":"v","a":0},{"n":"VALENCIA","la":39.4739,"lo":-0.3797,"d":"1999-09-01","k":"v","a":0},{"n":"NIZZA","la":43.7031,"lo":7.2661,"d":"2001-12-25","k":"v","a":0},{"n":"BRESCIA","la":45.5356,"lo":10.2147,"d":"2002-01-03","k":"v","a":0},{"n":"GENOVA","la":44.4048,"lo":8.9444,"d":"2002-01-03","k":"n","a":0},{"n":"LA SPEZIA","la":44.103,"lo":9.8238,"d":"2002-01-03","k":"n","a":0},{"n":"REGGIO EMILIA","la":44.6983,"lo":10.6312,"d":"2002-01-03","k":"n","a":0},{"n":"SAN CANDIDO","la":46.7324,"lo":12.2785,"d":"2002-01-03","k":"n","a":0},{"n":"FRIBURGO","la":46.8024,"lo":7.1513,"d":"2003-06-01","k":"v","a":0},{"n":"GINEVRA","la":46.2,"lo":6.14,"d":"2003-06-01","k":"v","a":0},{"n":"LOSANNA","la":46.516,"lo":6.6328,"d":"2003-06-01","k":"v","a":0},{"n":"MARTIGNY","la":46.1028,"lo":7.0724,"d":"2003-06-01","k":"v","a":0},{"n":"MONTE BIANCO","la":45.8326,"lo":6.8652,"d":"2003-06-01","k":"v","a":0},{"n":"LONDRA","la":51.51,"lo":-0.13,"d":"2003-10-21","k":"v","a":0},{"n":"ALGECIRAS","la":36.1333,"lo":-5.4505,"d":"2003-11-01","k":"s","a":0},{"n":"CASABLANCA","la":33.57,"lo":-7.59,"d":"2003-11-01","k":"v","a":0},{"n":"TANGERI","la":35.76,"lo":-5.83,"d":"2003-11-01","k":"s","a":0},{"n":"SIVIGLIA","la":37.39,"lo":-5.99,"d":"2004-01-31","k":"v","a":0},{"n":"AGADIR","la":30.4202,"lo":-9.5982,"d":"2004-02-02","k":"n","a":0},{"n":"ASILAH","la":35.4652,"lo":-6.0342,"d":"2004-02-02","k":"n","a":0},{"n":"BIN EL OUIDANE","la":32.1167,"lo":-6.4333,"d":"2004-02-02","k":"n","a":0},{"n":"DAR BUAZZA","la":33.5167,"lo":-7.8,"d":"2004-02-02","k":"n","a":0},{"n":"EL JADIDA","la":33.2568,"lo":-8.5088,"d":"2004-02-02","k":"n","a":0},{"n":"ESSAOUIRA","la":31.5125,"lo":-9.77,"d":"2004-02-02","k":"n","a":0},{"n":"FEZ","la":34.0331,"lo":-5.0003,"d":"2004-02-02","k":"n","a":0},{"n":"KHENIFRA","la":32.9342,"lo":-5.6678,"d":"2004-02-02","k":"n","a":0},{"n":"MARRAKECH","la":31.63,"lo":-7.99,"d":"2004-02-02","k":"v","a":0},{"n":"MEKNES","la":33.8935,"lo":-5.5473,"d":"2004-02-02","k":"n","a":0},{"n":"MERZOUGA","la":31.0993,"lo":-4.0128,"d":"2004-02-02","k":"n","a":0},{"n":"MOULAY BOUSSELHAM","la":34.8731,"lo":-6.2956,"d":"2004-02-02","k":"n","a":0},{"n":"OUALIDIA","la":32.7367,"lo":-9.0339,"d":"2004-02-02","k":"n","a":0},{"n":"OUM ERRABIA","la":32.9,"lo":-5.6,"d":"2004-02-02","k":"n","a":1},{"n":"OUZUM","la":32.0117,"lo":-6.7189,"d":"2004-02-02","k":"n","a":0},{"n":"RABAT","la":34.0132,"lo":-6.8326,"d":"2004-02-02","k":"v","a":0},{"n":"TANGER","la":35.7673,"lo":-5.7998,"d":"2004-02-02","k":"n","a":0},{"n":"BRUXELLES","la":50.85,"lo":4.35,"d":"2004-02-23","k":"v","a":0},{"n":"CEUTA","la":35.89,"lo":-5.32,"d":"2004-06-01","k":"v","a":0},{"n":"TETUAN","la":35.5785,"lo":-5.3684,"d":"2004-06-01","k":"v","a":0},{"n":"ARLES SUR TECH","la":42.457,"lo":2.633,"d":"2005-07-26","k":"v","a":0},{"n":"COLLIOURE","la":42.53,"lo":3.08,"d":"2005-07-26","k":"v","a":0},{"n":"PORT DE LA SELVA","la":42.3361,"lo":3.2047,"d":"2005-07-26","k":"v","a":0},{"n":"DUBROVNIK","la":42.65,"lo":18.09,"d":"2005-08-03","k":"v","a":0},{"n":"KURZOLA","la":42.9594,"lo":17.1352,"d":"2005-08-03","k":"v","a":0},{"n":"DRVENIK","la":43.17,"lo":17.2,"d":"2005-08-14","k":"v","a":1},{"n":"FAZANA","la":44.9275,"lo":13.8,"d":"2005-08-14","k":"v","a":0},{"n":"HVAR","la":43.1729,"lo":16.4412,"d":"2005-08-14","k":"v","a":0},{"n":"LUBIANA","la":46.06,"lo":14.51,"d":"2005-08-14","k":"v","a":0},{"n":"MEDULIN","la":44.8167,"lo":13.9333,"d":"2005-08-14","k":"v","a":0},{"n":"PAG","la":44.4441,"lo":15.0553,"d":"2005-08-14","k":"v","a":0},{"n":"POLA","la":44.8666,"lo":13.8496,"d":"2005-08-14","k":"v","a":0},{"n":"RIJEKA","la":45.3271,"lo":14.4422,"d":"2005-08-14","k":"v","a":0},{"n":"SPLIT","la":43.5081,"lo":16.4402,"d":"2005-08-14","k":"v","a":0},{"n":"POSTOJNA","la":45.7744,"lo":14.2136,"d":"2005-08-18","k":"v","a":0},{"n":"PREMANTURA","la":44.7928,"lo":13.9078,"d":"2005-08-18","k":"v","a":0},{"n":"ARAN ISLANDS","la":53.12,"lo":-9.75,"d":"2005-12-02","k":"v","a":0},{"n":"GALWAY","la":53.2724,"lo":-9.051,"d":"2005-12-02","k":"v","a":0},{"n":"GIRONA","la":41.9831,"lo":2.8249,"d":"2005-12-02","k":"n","a":0},{"n":"MOHAR CLIFFS","la":52.9719,"lo":-9.4265,"d":"2005-12-02","k":"v","a":0},{"n":"SHANNON","la":52.7039,"lo":-8.8642,"d":"2005-12-02","k":"s","a":0},{"n":"PARIGI","la":48.86,"lo":2.35,"d":"2006-04-13","k":"v","a":0},{"n":"BILBAO","la":43.2627,"lo":-2.9253,"d":"2006-04-18","k":"n","a":0},{"n":"LOGROÑO","la":42.4661,"lo":-2.4512,"d":"2006-04-18","k":"n","a":0},{"n":"VALL DE BUÍ","la":42.5167,"lo":0.8333,"d":"2006-04-18","k":"n","a":0},{"n":"LISBONA","la":38.72,"lo":-9.14,"d":"2006-07-14","k":"v","a":0},{"n":"SETUBAL","la":38.5244,"lo":-8.8882,"d":"2006-07-14","k":"v","a":0},{"n":"SINTRA","la":38.801,"lo":-9.3783,"d":"2006-07-14","k":"v","a":0},{"n":"BESSANÇON","la":47.24,"lo":6.02,"d":"2006-08-06","k":"v","a":0},{"n":"MILLAU","la":44.0997,"lo":3.0785,"d":"2006-08-06","k":"v","a":0},{"n":"MÜNSTER","la":51.96,"lo":7.63,"d":"2006-08-07","k":"v","a":0},{"n":"COPENAGHEN","la":55.68,"lo":12.57,"d":"2006-08-09","k":"v","a":0},{"n":"ENSCHENDE","la":52.22,"lo":6.9,"d":"2006-08-09","k":"v","a":0},{"n":"MALMÖ","la":55.6,"lo":13.0,"d":"2006-08-12","k":"v","a":0},{"n":"BOHUS","la":57.8444,"lo":12.0114,"d":"2006-08-16","k":"v","a":0},{"n":"GOTTSKAR","la":57.3833,"lo":11.9167,"d":"2006-08-16","k":"v","a":0},{"n":"ORUST","la":58.15,"lo":11.65,"d":"2006-08-16","k":"v","a":0},{"n":"OSLO","la":59.91,"lo":10.75,"d":"2006-08-16","k":"v","a":0},{"n":"ARENDAL","la":58.4617,"lo":8.7721,"d":"2006-08-20","k":"v","a":0},{"n":"DALEN","la":59.4458,"lo":7.9922,"d":"2006-08-20","k":"v","a":0},{"n":"FLEKKEFJORD","la":58.2969,"lo":6.6619,"d":"2006-08-20","k":"v","a":0},{"n":"GOTEBORG","la":57.7072,"lo":11.9668,"d":"2006-08-20","k":"v","a":0},{"n":"HALMSTAD","la":56.6745,"lo":12.8568,"d":"2006-08-20","k":"v","a":0},{"n":"LYSEBOTN","la":59.0522,"lo":6.6556,"d":"2006-08-20","k":"v","a":0},{"n":"PREIKESTOLEN","la":58.9863,"lo":6.1904,"d":"2006-08-20","k":"v","a":0},{"n":"TROLLHATTAN","la":58.2837,"lo":12.2886,"d":"2006-08-20","k":"v","a":0},{"n":"BERLINO","la":52.52,"lo":13.4,"d":"2006-08-22","k":"v","a":0},{"n":"GRANSEE","la":53.007,"lo":13.1575,"d":"2006-08-22","k":"v","a":0},{"n":"SASSNITZ","la":54.5157,"lo":13.6445,"d":"2006-08-22","k":"s","a":0},{"n":"TRELLEBORG","la":55.375,"lo":13.1569,"d":"2006-08-22","k":"v","a":0},{"n":"CORTINA D'AMPEZZO","la":46.5369,"lo":12.139,"d":"2006-08-26","k":"v","a":0},{"n":"MONACO","la":48.1351,"lo":11.582,"d":"2006-08-26","k":"v","a":0},{"n":"OPORTO","la":41.15,"lo":-8.61,"d":"2006-12-05","k":"v","a":0},{"n":"EDINBURGO","la":55.95,"lo":-3.19,"d":"2006-12-23","k":"v","a":0},{"n":"ELLEAN CASTLE","la":57.2736,"lo":-5.5164,"d":"2006-12-23","k":"v","a":0},{"n":"ISLE OF SKYE","la":57.3619,"lo":-6.2473,"d":"2006-12-23","k":"v","a":0},{"n":"GLASGOW","la":55.8651,"lo":-4.2576,"d":"2007-01-01","k":"v","a":0},{"n":"AVIGNON","la":43.9483,"lo":4.8089,"d":"2007-04-06","k":"v","a":0},{"n":"CHATEAUDOUBLE","la":43.5833,"lo":6.4667,"d":"2007-04-06","k":"v","a":0},{"n":"DRAGUIGNAN","la":43.54,"lo":6.47,"d":"2007-04-06","k":"v","a":0},{"n":"GORGES DU VERDON","la":43.7633,"lo":6.3329,"d":"2007-04-06","k":"v","a":0},{"n":"MONTPELLIER","la":43.61,"lo":3.88,"d":"2007-04-06","k":"v","a":0},{"n":"MOUSTIER","la":43.8456,"lo":6.2206,"d":"2007-04-06","k":"v","a":0},{"n":"TIRGANCE","la":43.76,"lo":6.4333,"d":"2007-04-06","k":"v","a":0},{"n":"ARRIFANA","la":37.2889,"lo":-8.8639,"d":"2007-08-07","k":"v","a":0},{"n":"MELIDES","la":38.1519,"lo":-8.7733,"d":"2007-08-07","k":"v","a":0},{"n":"ODEMIRA","la":37.598,"lo":-8.6397,"d":"2007-08-07","k":"v","a":0},{"n":"SINES","la":37.9562,"lo":-8.8698,"d":"2007-08-07","k":"v","a":0},{"n":"VILANOVA DE MILFONTES","la":37.7261,"lo":-8.7872,"d":"2007-08-07","k":"v","a":0},{"n":"NARBONNE","la":43.184,"lo":3.0014,"d":"2007-11-02","k":"v","a":0},{"n":"SANT GUILHEM DU DESERT","la":43.7344,"lo":3.5472,"d":"2007-11-02","k":"v","a":0},{"n":"ALBUFERA","la":39.33,"lo":-0.35,"d":"2008-01-02","k":"n","a":0},{"n":"DELTA DE L'EBRE","la":40.7167,"lo":0.8667,"d":"2008-01-02","k":"n","a":0},{"n":"NAVACERRADA","la":40.7291,"lo":-4.017,"d":"2008-01-02","k":"n","a":0},{"n":"CASTLECOVE","la":51.7683,"lo":-10.0,"d":"2008-02-12","k":"v","a":1},{"n":"CASTLEQUIN","la":51.75,"lo":-10.05,"d":"2008-02-12","k":"v","a":1},{"n":"DINGLE","la":52.1408,"lo":-10.2689,"d":"2008-02-12","k":"v","a":0},{"n":"DUBLINO","la":53.35,"lo":-6.26,"d":"2008-02-12","k":"v","a":0},{"n":"KENMARE","la":51.8833,"lo":-9.5833,"d":"2008-02-12","k":"v","a":0},{"n":"KILLARNEY","la":52.0599,"lo":-9.5044,"d":"2008-02-12","k":"v","a":0},{"n":"CANTERBURY","la":51.279,"lo":1.0799,"d":"2008-02-18","k":"v","a":0},{"n":"DOVER","la":51.126,"lo":1.3126,"d":"2008-02-18","k":"v","a":0},{"n":"SALISBURY","la":51.0693,"lo":-1.7957,"d":"2008-02-18","k":"v","a":0},{"n":"WINCHESTER","la":51.0651,"lo":-1.3187,"d":"2008-02-18","k":"v","a":0},{"n":"CIVITAVECCHIA","la":42.0932,"lo":11.7967,"d":"2008-05-04","k":"v","a":0},{"n":"ROMA","la":41.9,"lo":12.5,"d":"2008-05-04","k":"v","a":0},{"n":"FRANCOFORTE","la":50.11,"lo":8.68,"d":"2008-05-16","k":"v","a":0},{"n":"ARRAIAL D'AJUDA","la":-16.4833,"lo":-39.0667,"d":"2008-05-17","k":"n","a":0},{"n":"ARRAIAL DO CABO","la":-22.9661,"lo":-42.0278,"d":"2008-05-17","k":"n","a":0},{"n":"ATINS","la":-2.5702,"lo":-42.7423,"d":"2008-05-17","k":"n","a":0},{"n":"BELO HORIZONTE","la":-19.9208,"lo":-43.9378,"d":"2008-05-17","k":"n","a":0},{"n":"BOIPEBA","la":-13.6,"lo":-38.9,"d":"2008-05-17","k":"n","a":0},{"n":"BRASILIA","la":-15.7797,"lo":-47.9297,"d":"2008-05-17","k":"n","a":0},{"n":"CABOFRIO","la":-22.8794,"lo":-42.0186,"d":"2008-05-17","k":"n","a":0},{"n":"CANOA QUEBRADA","la":-4.5297,"lo":-37.7,"d":"2008-05-17","k":"n","a":0},{"n":"CURITIBA","la":-25.4278,"lo":-49.2731,"d":"2008-05-17","k":"n","a":0},{"n":"DIAMANTINA","la":-18.2469,"lo":-43.6035,"d":"2008-05-17","k":"n","a":0},{"n":"FLORIANOPOLIS","la":-27.5967,"lo":-48.5492,"d":"2008-05-17","k":"n","a":0},{"n":"FORTALEZA","la":-3.7172,"lo":-38.5431,"d":"2008-05-17","k":"n","a":0},{"n":"ITAIPU","la":-25.4086,"lo":-54.5886,"d":"2008-05-17","k":"n","a":0},{"n":"JERICOACOARA","la":-2.895,"lo":-40.4492,"d":"2008-05-17","k":"n","a":0},{"n":"LENÇOIS","la":-2.4833,"lo":-43.1,"d":"2008-05-17","k":"n","a":0},{"n":"NATAL","la":-5.795,"lo":-35.2094,"d":"2008-05-17","k":"n","a":0},{"n":"OLINDA","la":-8.0089,"lo":-34.8553,"d":"2008-05-17","k":"v","a":0},{"n":"OUROPRETO","la":-20.3856,"lo":-43.5036,"d":"2008-05-17","k":"n","a":0},{"n":"PARATY","la":-23.2178,"lo":-44.7131,"d":"2008-05-17","k":"n","a":0},{"n":"PIAÇABUÇU","la":-10.4056,"lo":-36.4344,"d":"2008-05-17","k":"n","a":0},{"n":"PIPA","la":-6.2294,"lo":-35.0467,"d":"2008-05-17","k":"v","a":0},{"n":"PORTO DE GALINHAS","la":-8.5074,"lo":-35.0043,"d":"2008-05-17","k":"n","a":0},{"n":"PORTO SEGURO","la":-16.4497,"lo":-39.0647,"d":"2008-05-17","k":"n","a":0},{"n":"RECIFE","la":-8.05,"lo":-34.88,"d":"2008-05-17","k":"v","a":0},{"n":"RIO DE JANEIRO","la":-22.9064,"lo":-43.1822,"d":"2008-05-17","k":"n","a":0},{"n":"SALVADOR","la":-12.97,"lo":-38.51,"d":"2008-05-17","k":"v","a":0},{"n":"SAO LUIS","la":-2.5297,"lo":-44.3028,"d":"2008-05-17","k":"n","a":0},{"n":"SAO PAULO","la":-23.5475,"lo":-46.6361,"d":"2008-05-17","k":"v","a":0},{"n":"SAO TOMÉ DAS LETRAS","la":-21.7167,"lo":-44.9833,"d":"2008-05-17","k":"n","a":0},{"n":"SERRA DA CAPIVARA","la":-8.8333,"lo":-42.5333,"d":"2008-05-17","k":"n","a":0},{"n":"TATAJUBA","la":-2.9633,"lo":-40.5,"d":"2008-05-17","k":"n","a":0},{"n":"TERESINA","la":-5.0892,"lo":-42.8019,"d":"2008-05-17","k":"n","a":0},{"n":"UBAJARA","la":-3.8544,"lo":-40.9211,"d":"2008-05-17","k":"n","a":0},{"n":"UBATUBA","la":-23.4339,"lo":-45.0711,"d":"2008-05-17","k":"n","a":0},{"n":"VITÓRIA","la":-20.3194,"lo":-40.3378,"d":"2008-05-17","k":"n","a":0},{"n":"FOZ DE IGUAZU","la":-25.54,"lo":-54.59,"d":"2008-09-30","k":"v","a":0},{"n":"PUERTO IGUAZU","la":-25.5991,"lo":-54.5735,"d":"2008-09-30","k":"v","a":0},{"n":"CARDOSO","la":43.99,"lo":10.31,"d":"2008-12-18","k":"n","a":1},{"n":"COLLI EUGANEI","la":45.3,"lo":11.7,"d":"2008-12-18","k":"n","a":0},{"n":"COMO","la":45.8082,"lo":9.0832,"d":"2008-12-18","k":"n","a":0},{"n":"FOGGIA","la":41.4584,"lo":15.5519,"d":"2008-12-18","k":"n","a":0},{"n":"L'AQUILA","la":42.3505,"lo":13.3995,"d":"2008-12-18","k":"v","a":0},{"n":"MILANO","la":45.46,"lo":9.19,"d":"2008-12-18","k":"v","a":0},{"n":"OSTUNI","la":40.7291,"lo":17.5768,"d":"2008-12-18","k":"n","a":0},{"n":"PESCARA","la":42.4584,"lo":14.2028,"d":"2008-12-18","k":"v","a":0},{"n":"PESCHICI","la":41.9452,"lo":16.0161,"d":"2008-12-18","k":"n","a":0},{"n":"TERMOLI","la":41.9999,"lo":14.9939,"d":"2008-12-18","k":"n","a":0},{"n":"URBINO","la":43.7262,"lo":12.6363,"d":"2008-12-18","k":"n","a":0},{"n":"VESTEA","la":42.38,"lo":13.9,"d":"2008-12-18","k":"n","a":1},{"n":"VIESTE","la":41.8821,"lo":16.1714,"d":"2008-12-18","k":"n","a":0},{"n":"CALANDULA","la":-9.0667,"lo":16.0,"d":"2009-09-13","k":"v","a":0},{"n":"DONDO","la":-9.6846,"lo":14.4279,"d":"2009-09-13","k":"v","a":0},{"n":"KIBALA","la":-10.7337,"lo":14.98,"d":"2009-09-13","k":"v","a":0},{"n":"LUANDA","la":-8.84,"lo":13.23,"d":"2009-09-13","k":"v","a":0},{"n":"LUCALA","la":-9.2727,"lo":15.2521,"d":"2009-09-13","k":"v","a":0},{"n":"MASSANGANO","la":-9.62,"lo":13.43,"d":"2009-09-13","k":"v","a":0},{"n":"MBANZA CONGO","la":-6.2667,"lo":14.2383,"d":"2009-09-13","k":"v","a":0},{"n":"NDALATANDO","la":-9.2978,"lo":14.9116,"d":"2009-09-13","k":"v","a":0},{"n":"PEDRA DO FETIÇO","la":-9.67,"lo":15.58,"d":"2009-09-13","k":"v","a":1},{"n":"SOYO","la":-6.1349,"lo":12.3689,"d":"2009-09-13","k":"v","a":0},{"n":"CARCASSONNE","la":43.2165,"lo":2.3486,"d":"2010-03-08","k":"v","a":0},{"n":"ORLEANS","la":47.9025,"lo":1.9041,"d":"2010-03-08","k":"v","a":0},{"n":"TOULOUSE","la":43.6043,"lo":1.4437,"d":"2010-03-08","k":"v","a":0},{"n":"AINSA","la":42.4155,"lo":0.1401,"d":"2010-04-03","k":"n","a":0},{"n":"ALMANSA","la":38.8692,"lo":-1.0971,"d":"2010-04-03","k":"n","a":0},{"n":"CUENCA","la":40.0667,"lo":-2.1333,"d":"2010-04-03","k":"n","a":0},{"n":"EL NIÑO DE MULA","la":38.03,"lo":-1.48,"d":"2010-04-03","k":"n","a":1},{"n":"OLOT","la":42.181,"lo":2.4901,"d":"2010-04-03","k":"n","a":0},{"n":"PEDRAFORCA","la":42.2392,"lo":1.7,"d":"2010-04-03","k":"n","a":0},{"n":"SEGOVIA","la":40.9481,"lo":-4.1184,"d":"2010-04-03","k":"n","a":0},{"n":"TORLA","la":42.6333,"lo":-0.1,"d":"2010-04-03","k":"n","a":0},{"n":"VAL DE ORDESA","la":42.65,"lo":-0.05,"d":"2010-04-03","k":"n","a":0},{"n":"TIVOLI","la":41.9595,"lo":12.8016,"d":"2010-05-16","k":"v","a":0},{"n":"CAZOMBO","la":-11.8991,"lo":22.9022,"d":"2010-07-16","k":"v","a":0},{"n":"DIRICO","la":-17.97,"lo":20.77,"d":"2010-07-16","k":"v","a":0},{"n":"HUAMBO","la":-12.7761,"lo":15.7392,"d":"2010-07-16","k":"v","a":0},{"n":"KALAI","la":-17.9,"lo":19.1,"d":"2010-07-16","k":"v","a":1},{"n":"KATWITWI","la":-17.85,"lo":19.15,"d":"2010-07-16","k":"v","a":1},{"n":"KUANGAR","la":-17.75,"lo":19.4,"d":"2010-07-16","k":"v","a":1},{"n":"KUITO KUANAVALE","la":-15.17,"lo":19.18,"d":"2010-07-16","k":"v","a":0},{"n":"LAGO DILOLO","la":-11.58,"lo":22.0,"d":"2010-07-16","k":"v","a":1},{"n":"LUAU","la":-10.7073,"lo":22.2247,"d":"2010-07-16","k":"v","a":0},{"n":"LUENA","la":-11.7833,"lo":19.9167,"d":"2010-07-16","k":"v","a":0},{"n":"MAVINGA","la":-15.8,"lo":20.35,"d":"2010-07-16","k":"v","a":1},{"n":"MENONGUE","la":-14.66,"lo":17.69,"d":"2010-07-16","k":"v","a":0},{"n":"RIVUNGO","la":-16.4,"lo":21.7,"d":"2010-07-16","k":"v","a":1},{"n":"RUNDU","la":-17.93,"lo":19.77,"d":"2010-09-01","k":"v","a":0},{"n":"ORVIETO","la":42.7186,"lo":12.1117,"d":"2010-12-12","k":"v","a":0},{"n":"PITIGNANO","la":42.6333,"lo":11.67,"d":"2010-12-12","k":"v","a":1},{"n":"SAN GALGANO","la":43.1519,"lo":11.1625,"d":"2010-12-12","k":"v","a":0},{"n":"SUMBE","la":-11.206,"lo":13.8437,"d":"2011-02-18","k":"v","a":0},{"n":"BAFODIA","la":9.97,"lo":-11.37,"d":"2011-04-29","k":"v","a":1},{"n":"FALABA","la":9.85,"lo":-11.3,"d":"2011-04-29","k":"v","a":0},{"n":"FREETOWN","la":8.48,"lo":-13.23,"d":"2011-04-29","k":"v","a":0},{"n":"KABALA","la":9.5889,"lo":-11.5526,"d":"2011-04-29","k":"v","a":0},{"n":"KAMABAI","la":9.2,"lo":-11.9,"d":"2011-04-29","k":"v","a":1},{"n":"MAKENI","la":8.886,"lo":-12.0442,"d":"2011-04-29","k":"v","a":0},{"n":"MONGO BENDUGU","la":9.1,"lo":-11.4,"d":"2011-04-29","k":"v","a":1},{"n":"OUTAMBA KILIMI","la":9.7,"lo":-11.9,"d":"2011-04-29","k":"v","a":1},{"n":"SINKUNIA","la":9.9,"lo":-11.5,"d":"2011-04-29","k":"v","a":1},{"n":"SUMBARIA","la":9.75,"lo":-11.0,"d":"2011-04-29","k":"v","a":1},{"n":"TOKEH","la":8.3,"lo":-13.2,"d":"2011-04-29","k":"v","a":1},{"n":"YIFFIN","la":9.2,"lo":-11.7,"d":"2011-04-29","k":"v","a":1},{"n":"ARLES","la":43.6768,"lo":4.6303,"d":"2011-09-08","k":"v","a":0},{"n":"ANGERA","la":45.7756,"lo":8.5786,"d":"2011-09-11","k":"v","a":0},{"n":"BANANA ISLAND","la":8.1167,"lo":-13.2333,"d":"2011-11-17","k":"v","a":0},{"n":"BANJUL","la":13.4527,"lo":-16.578,"d":"2011-11-17","k":"s","a":0},{"n":"BO","la":7.9647,"lo":-11.7383,"d":"2011-11-17","k":"v","a":0},{"n":"MONROVIA","la":6.3005,"lo":-10.7969,"d":"2011-11-17","k":"s","a":0},{"n":"POT LOKO","la":8.7667,"lo":-12.7833,"d":"2011-11-17","k":"v","a":0},{"n":"TIWAI ISLAND","la":7.55,"lo":-11.35,"d":"2011-11-17","k":"v","a":0},{"n":"MARSIGLIA","la":43.3,"lo":5.37,"d":"2012-06-16","k":"v","a":0},{"n":"AUSCHWITZ","la":50.0344,"lo":19.2104,"d":"2012-09-07","k":"v","a":0},{"n":"KOMOROW","la":52.1456,"lo":20.8157,"d":"2012-09-07","k":"v","a":0},{"n":"KRAKOW","la":50.0614,"lo":19.9366,"d":"2012-09-07","k":"v","a":0},{"n":"MIKOLAJKI","la":53.8029,"lo":21.5701,"d":"2012-09-07","k":"v","a":0},{"n":"VARSAVIA","la":52.23,"lo":21.01,"d":"2012-09-07","k":"v","a":0},{"n":"AJANTA","la":20.5519,"lo":75.7033,"d":"2012-11-28","k":"v","a":0},{"n":"ELLORA","la":20.0258,"lo":75.178,"d":"2012-11-28","k":"v","a":0},{"n":"GOA","la":15.3891,"lo":73.8149,"d":"2012-11-28","k":"v","a":0},{"n":"GOKARNA","la":14.55,"lo":74.3167,"d":"2012-11-28","k":"v","a":0},{"n":"HAMPI","la":15.3352,"lo":76.4609,"d":"2012-11-28","k":"v","a":0},{"n":"KAJURAHO","la":24.8481,"lo":79.9335,"d":"2012-11-28","k":"v","a":0},{"n":"KOCHI","la":9.9399,"lo":76.2602,"d":"2012-11-28","k":"v","a":0},{"n":"KOLLAM","la":8.8811,"lo":76.5847,"d":"2012-11-28","k":"v","a":0},{"n":"MOMBAI","la":19.08,"lo":72.88,"d":"2012-11-28","k":"v","a":0},{"n":"MUNNAR","la":10.0882,"lo":77.0624,"d":"2012-11-28","k":"v","a":0},{"n":"ORCHHA","la":25.3514,"lo":78.6407,"d":"2012-11-28","k":"v","a":0},{"n":"SARNATH","la":25.3811,"lo":83.0242,"d":"2012-11-28","k":"v","a":0},{"n":"VARANASI","la":25.3167,"lo":83.0104,"d":"2012-11-28","k":"v","a":0},{"n":"ZAKOPANE","la":49.299,"lo":19.9489,"d":"2013-01-05","k":"v","a":0},{"n":"BILENE","la":-25.28,"lo":33.2,"d":"2013-01-15","k":"v","a":0},{"n":"DOHA","la":25.2855,"lo":51.531,"d":"2013-01-15","k":"s","a":0},{"n":"ISLA DE INHACA","la":-26.0,"lo":32.9,"d":"2013-01-15","k":"v","a":0},{"n":"JOHANNESBURG","la":-26.2023,"lo":28.0436,"d":"2013-01-15","k":"s","a":0},{"n":"MAPUTO","la":-25.97,"lo":32.57,"d":"2013-01-15","k":"v","a":0},{"n":"MAÇANETA","la":-25.75,"lo":32.7,"d":"2013-01-15","k":"v","a":1},{"n":"KOMATIPOORT","la":-25.4332,"lo":31.9548,"d":"2013-02-14","k":"v","a":0},{"n":"MALELANE","la":-25.4833,"lo":31.5167,"d":"2013-02-14","k":"v","a":0},{"n":"SKUKUZA","la":-24.9922,"lo":31.5922,"d":"2013-02-14","k":"v","a":0},{"n":"MENERBES","la":43.8324,"lo":5.206,"d":"2013-11-19","k":"v","a":0},{"n":"MONTEAUX","la":44.0,"lo":5.3,"d":"2013-11-19","k":"v","a":1},{"n":"ARUSHA","la":-3.37,"lo":36.68,"d":"2013-12-03","k":"v","a":0},{"n":"ISTANBUL","la":41.01,"lo":28.97,"d":"2013-12-03","k":"v","a":0},{"n":"KENDWA","la":-5.73,"lo":39.29,"d":"2013-12-03","k":"v","a":0},{"n":"MANYARA LAKE","la":-3.6,"lo":35.8,"d":"2013-12-03","k":"v","a":0},{"n":"NGORONGORO","la":-3.2397,"lo":35.4875,"d":"2013-12-03","k":"v","a":0},{"n":"SERENGETI","la":-2.3333,"lo":34.8333,"d":"2013-12-03","k":"v","a":0},{"n":"ZANZIBAR","la":-6.1639,"lo":39.1979,"d":"2013-12-03","k":"v","a":0},{"n":"AIGUESTORTES","la":42.5667,"lo":0.9333,"d":"2013-12-26","k":"n","a":0},{"n":"BEGET","la":42.2672,"lo":2.2561,"d":"2013-12-26","k":"n","a":0},{"n":"BELCHITE","la":41.3032,"lo":-0.7505,"d":"2013-12-26","k":"n","a":0},{"n":"CADAQUES","la":42.2886,"lo":3.2771,"d":"2013-12-26","k":"n","a":0},{"n":"CORDOBA","la":37.8916,"lo":-4.7728,"d":"2013-12-26","k":"n","a":0},{"n":"FORMENTERA","la":38.6947,"lo":1.4491,"d":"2013-12-26","k":"n","a":0},{"n":"FUERTEVENTURA","la":28.3587,"lo":-14.0537,"d":"2013-12-26","k":"n","a":0},{"n":"LA GOMERA","la":28.0916,"lo":-17.1133,"d":"2013-12-26","k":"n","a":0},{"n":"LA PALMA","la":28.6835,"lo":-17.7642,"d":"2013-12-26","k":"n","a":0},{"n":"LANZAROTE","la":29.0469,"lo":-13.59,"d":"2013-12-26","k":"n","a":0},{"n":"MENORCA","la":39.95,"lo":4.1,"d":"2013-12-26","k":"n","a":0},{"n":"SIURANA","la":41.2644,"lo":0.9411,"d":"2013-12-26","k":"n","a":0},{"n":"TARRAGONA","la":41.1191,"lo":1.2454,"d":"2013-12-26","k":"n","a":0},{"n":"UBEDA","la":38.0133,"lo":-3.3705,"d":"2013-12-26","k":"n","a":0},{"n":"VISO DEL MARQUES","la":38.5221,"lo":-3.5635,"d":"2013-12-26","k":"n","a":0},{"n":"ZARAGOZA","la":41.6561,"lo":-0.8773,"d":"2013-12-26","k":"n","a":0},{"n":"ALGHERO","la":40.56,"lo":8.32,"d":"2014-09-28","k":"v","a":0},{"n":"CAPO COMINO","la":40.5333,"lo":9.8167,"d":"2014-09-28","k":"v","a":0},{"n":"NUORO","la":40.3199,"lo":9.3257,"d":"2014-09-28","k":"v","a":0},{"n":"OROSEI","la":40.3783,"lo":9.6925,"d":"2014-09-28","k":"v","a":0},{"n":"DEAD SEA","la":31.5,"lo":35.5,"d":"2014-10-21","k":"v","a":0},{"n":"EILAT","la":29.5581,"lo":34.9482,"d":"2014-10-21","k":"v","a":0},{"n":"GERUSALEMME","la":31.769,"lo":35.2163,"d":"2014-10-21","k":"v","a":0},{"n":"KYRIAT GAT","la":31.61,"lo":34.7642,"d":"2014-10-21","k":"v","a":0},{"n":"QISAREYYA","la":32.5,"lo":34.8933,"d":"2014-10-21","k":"v","a":0},{"n":"TEL AVIV","la":32.08,"lo":34.78,"d":"2014-10-21","k":"v","a":0},{"n":"AMSTERDAM","la":52.37,"lo":4.9,"d":"2014-12-13","k":"v","a":0},{"n":"DELFT","la":52.0067,"lo":4.3556,"d":"2014-12-13","k":"v","a":0},{"n":"DINAN","la":48.45,"lo":-2.0333,"d":"2015-07-03","k":"v","a":0},{"n":"DINARD","la":48.6314,"lo":-2.0614,"d":"2015-07-03","k":"v","a":0},{"n":"MONT SAINT MICHEL","la":48.636,"lo":-1.5115,"d":"2015-07-03","k":"v","a":0},{"n":"PERROS GUIREC","la":48.8145,"lo":-3.4396,"d":"2015-07-03","k":"v","a":0},{"n":"SAINT BRIAC","la":48.6333,"lo":-2.1333,"d":"2015-07-03","k":"v","a":0},{"n":"BRISTOL","la":51.4552,"lo":-2.5966,"d":"2015-08-25","k":"v","a":0},{"n":"LISKEARD","la":50.4545,"lo":-4.4652,"d":"2015-08-25","k":"v","a":0},{"n":"PLYMOUTH","la":50.37,"lo":-4.14,"d":"2015-08-25","k":"v","a":0},{"n":"POLPERRO","la":50.3326,"lo":-4.5163,"d":"2015-08-25","k":"v","a":0},{"n":"BOSCASTLE","la":50.6846,"lo":-4.6937,"d":"2015-10-19","k":"v","a":0},{"n":"PADSTOW","la":50.5388,"lo":-4.9366,"d":"2015-10-19","k":"v","a":0},{"n":"TOTNES","la":50.4311,"lo":-3.6843,"d":"2015-10-19","k":"v","a":0},{"n":"SERRAMBI","la":-8.5667,"lo":-35.0167,"d":"2015-12-01","k":"v","a":0},{"n":"ADDIS ABEBA","la":9.025,"lo":38.7469,"d":"2016-01-08","k":"s","a":0},{"n":"BONITO","la":-8.4703,"lo":-35.7286,"d":"2016-02-14","k":"v","a":0},{"n":"CAPAO","la":-12.6,"lo":-41.4833,"d":"2016-02-14","k":"v","a":0},{"n":"CARUARU","la":-8.2833,"lo":-35.9761,"d":"2016-02-14","k":"v","a":0},{"n":"CATIMBAU","la":-8.55,"lo":-37.25,"d":"2016-02-14","k":"v","a":0},{"n":"JAPARATINGA","la":-9.0833,"lo":-35.2667,"d":"2016-02-14","k":"v","a":0},{"n":"LENÇÓIS","la":-12.5636,"lo":-41.3889,"d":"2016-02-14","k":"v","a":0},{"n":"MAMANGUAPE","la":-6.8386,"lo":-35.1261,"d":"2016-02-14","k":"v","a":0},{"n":"NAZARÉ DA MATA","la":-7.7417,"lo":-35.2278,"d":"2016-02-14","k":"v","a":0},{"n":"PAULO AFONSO","la":-9.4061,"lo":-38.2147,"d":"2016-02-14","k":"v","a":0},{"n":"PENEDO","la":-10.2903,"lo":-36.5864,"d":"2016-02-14","k":"v","a":0},{"n":"PESQUEIRA","la":-8.3578,"lo":-36.6964,"d":"2016-02-14","k":"v","a":0},{"n":"PIRANHAS","la":-9.6247,"lo":-37.7567,"d":"2016-02-14","k":"v","a":0},{"n":"PRAIA DO FORTE","la":-12.5667,"lo":-38.0333,"d":"2016-02-14","k":"v","a":0},{"n":"TAMBABA","la":-7.3,"lo":-34.8,"d":"2016-02-14","k":"v","a":0},{"n":"TIBAÚ DO SUL","la":-6.1867,"lo":-35.0919,"d":"2016-02-14","k":"v","a":0},{"n":"CATANZARO","la":38.8825,"lo":16.6009,"d":"2016-07-07","k":"v","a":0},{"n":"MATERA","la":40.666,"lo":16.6046,"d":"2016-07-07","k":"v","a":0},{"n":"TERRACINA","la":41.2917,"lo":13.2436,"d":"2016-07-07","k":"v","a":0},{"n":"SAO VICENTE FERRER","la":-7.5906,"lo":-35.4856,"d":"2016-09-03","k":"v","a":0},{"n":"TRIUNFO","la":-7.8383,"lo":-38.1,"d":"2016-09-03","k":"v","a":0},{"n":"ANDORRA","la":42.5063,"lo":1.5218,"d":"2017-12-06","k":"v","a":0},{"n":"FOIX","la":42.9667,"lo":1.6,"d":"2017-12-06","k":"v","a":0},{"n":"NIOUX","la":42.9,"lo":1.6,"d":"2017-12-06","k":"v","a":0},{"n":"ERICE","la":38.0378,"lo":12.5878,"d":"2018-05-09","k":"v","a":0},{"n":"FAVIGNANA","la":37.9295,"lo":12.3296,"d":"2018-05-09","k":"v","a":0},{"n":"MENFI","la":37.6041,"lo":12.9689,"d":"2018-05-09","k":"v","a":0},{"n":"PALERMO","la":38.12,"lo":13.36,"d":"2018-05-09","k":"v","a":0},{"n":"TRAPANI","la":38.0176,"lo":12.5362,"d":"2018-05-09","k":"v","a":0},{"n":"CORVALLIS","la":44.56,"lo":-123.26,"d":"2018-06-09","k":"v","a":0},{"n":"CRATER LAKE","la":42.9446,"lo":-122.109,"d":"2018-06-09","k":"v","a":0},{"n":"NEWPORT","la":44.6368,"lo":-124.0535,"d":"2018-06-09","k":"v","a":0},{"n":"SEATTLE","la":47.6062,"lo":-122.3321,"d":"2018-06-09","k":"s","a":0},{"n":"AQABA","la":29.53,"lo":35.01,"d":"2018-10-19","k":"v","a":0},{"n":"PETRA","la":30.3222,"lo":35.4793,"d":"2018-10-19","k":"v","a":0},{"n":"WADI RUM","la":29.5724,"lo":35.4208,"d":"2018-10-19","k":"v","a":0},{"n":"BETLEMME","la":31.7,"lo":35.2,"d":"2018-10-23","k":"v","a":0},{"n":"JERICO","la":31.8667,"lo":35.45,"d":"2018-10-23","k":"v","a":0},{"n":"AGGIUS","la":40.9299,"lo":9.0652,"d":"2019-07-18","k":"v","a":0},{"n":"BAUNEI","la":40.0313,"lo":9.6637,"d":"2019-07-18","k":"v","a":0},{"n":"CASTELSARDO","la":40.9126,"lo":8.7145,"d":"2019-07-18","k":"v","a":0},{"n":"ORGOSOLO","la":40.2053,"lo":9.3544,"d":"2019-07-18","k":"v","a":0},{"n":"PORTO TORRES","la":40.84,"lo":8.4,"d":"2019-07-18","k":"v","a":0},{"n":"VALLEDORIA","la":40.9287,"lo":8.8232,"d":"2019-07-18","k":"v","a":0},{"n":"MAYENNE","la":48.3034,"lo":-0.6138,"d":"2019-09-29","k":"v","a":0},{"n":"GOZO","la":36.0444,"lo":14.2512,"d":"2019-12-01","k":"v","a":0},{"n":"LA VALLETTA","la":35.9,"lo":14.51,"d":"2019-12-01","k":"v","a":0},{"n":"PADOLA","la":46.6,"lo":12.5,"d":"2020-07-22","k":"v","a":0},{"n":"FAYÓN","la":41.2385,"lo":0.333,"d":"2020-07-31","k":"n","a":0},{"n":"MARGALEF","la":41.285,"lo":0.7533,"d":"2020-07-31","k":"n","a":0},{"n":"NAVAJAS","la":39.8833,"lo":-0.5,"d":"2020-07-31","k":"n","a":0},{"n":"TORTOSA","la":40.8125,"lo":0.5216,"d":"2020-07-31","k":"n","a":0},{"n":"ULLDECONA","la":40.5973,"lo":0.4472,"d":"2020-07-31","k":"n","a":0},{"n":"CHATEAU DE SALSES","la":42.8333,"lo":2.9167,"d":"2022-12-17","k":"v","a":0},{"n":"VARAZZO","la":44.3589,"lo":8.5783,"d":"2022-12-18","k":"v","a":0},{"n":"BASSANO","la":45.7667,"lo":11.7333,"d":"2022-12-27","k":"v","a":0},{"n":"BEZIERS","la":43.3412,"lo":3.214,"d":"2022-12-30","k":"v","a":0},{"n":"DEBRECEN","la":47.53,"lo":21.63,"d":"2024-02-14","k":"v","a":0},{"n":"ORADEA","la":47.07,"lo":21.92,"d":"2024-02-18","k":"v","a":0},{"n":"BUDAPEST","la":47.4984,"lo":19.0404,"d":"2024-02-23","k":"v","a":0},{"n":"ESPÉRAZA","la":42.93,"lo":2.22,"d":"2024-12-05","k":"v","a":0},{"n":"CASTELNOU","la":42.6,"lo":2.6333,"d":"2024-12-14","k":"v","a":0},{"n":"EUS","la":42.65,"lo":2.4833,"d":"2024-12-14","k":"v","a":0},{"n":"PERPIGNAN","la":42.7,"lo":2.9,"d":"2024-12-14","k":"v","a":0},{"n":"UTRECHT","la":52.0908,"lo":5.1222,"d":"2025-04-21","k":"v","a":0},{"n":"ZWOLLE","la":52.52,"lo":6.1,"d":"2025-04-21","k":"v","a":0},{"n":"LIMOUX","la":43.0549,"lo":2.2217,"d":"2025-05-04","k":"v","a":0},{"n":"QUILLAN","la":42.8758,"lo":2.1818,"d":"2025-05-04","k":"v","a":0},{"n":"PANTELLERIA","la":36.84,"lo":11.94,"d":"2025-05-17","k":"v","a":0},{"n":"GENT","la":51.05,"lo":3.72,"d":"2026-02-08","k":"v","a":0},{"n":"KAUNAS","la":54.9,"lo":23.9,"d":"2026-05-04","k":"v","a":0},{"n":"JELGAVA","la":56.65,"lo":23.7128,"d":"2026-05-09","k":"v","a":0},{"n":"KEDAINIAI","la":55.2883,"lo":23.9742,"d":"2026-05-09","k":"v","a":0},{"n":"KRYSIU KALNAS","la":56.015,"lo":23.4161,"d":"2026-05-09","k":"v","a":0},{"n":"RIGA","la":56.95,"lo":24.11,"d":"2026-05-09","k":"v","a":0},{"n":"BAUSKAS","la":56.4086,"lo":24.1936,"d":"2026-05-10","k":"v","a":0},{"n":"TRAKAI","la":54.6333,"lo":24.9333,"d":"2026-05-10","k":"v","a":0},{"n":"UZAPIS","la":54.68,"lo":25.3,"d":"2026-05-10","k":"v","a":0},{"n":"VILNIUS","la":54.6892,"lo":25.2798,"d":"2026-05-10","k":"v","a":0},{"n":"BORGGOMANERO","la":45.6989,"lo":8.4637,"d":"2026-07-27","k":"v","a":0},{"n":"CALATAYUD","la":41.3535,"lo":-1.6432,"d":"2026-07-30","k":"n","a":0},{"n":"SALAMANCA","la":40.4297,"lo":-3.6797,"d":"2026-07-30","k":"n","a":0},{"n":"SORIA","la":41.764,"lo":-2.4688,"d":"2026-07-30","k":"n","a":0},{"n":"TUDELA DEL DUERO","la":41.5897,"lo":-4.5806,"d":"2026-07-30","k":"n","a":0},{"n":"VALLADOLID","la":41.6554,"lo":-4.7235,"d":"2026-07-30","k":"n","a":0}];
+    const MAP_CITIES = [{"n":"CATANIA","la":37.4922,"lo":15.0704,"d":"1977-10-07","k":"n","a":0,"i":380},{"n":"MESSINA","la":38.1939,"lo":15.5526,"d":"1977-10-07","k":"n","a":0,"i":380},{"n":"MONASTIER DI TREVISO","la":45.6,"lo":12.43,"d":"1977-10-07","k":"v","a":0,"i":380},{"n":"NAPOLI","la":40.8522,"lo":14.2681,"d":"1977-10-07","k":"v","a":0,"i":380},{"n":"VENEZIA","la":45.44,"lo":12.33,"d":"1977-10-07","k":"v","a":0,"i":380},{"n":"TREVISO","la":45.6667,"lo":12.2416,"d":"1977-12-29","k":"n","a":0,"i":380},{"n":"TRIESTE","la":45.6495,"lo":13.7768,"d":"1978-06-13","k":"v","a":0,"i":380},{"n":"PARMA","la":44.7993,"lo":10.3262,"d":"1978-11-26","k":"n","a":0,"i":380},{"n":"PAVIA","la":45.1921,"lo":9.1592,"d":"1979-05-12","k":"n","a":0,"i":380},{"n":"MODENA","la":44.6478,"lo":10.9254,"d":"1979-10-25","k":"n","a":0,"i":380},{"n":"FERRARA","la":44.838,"lo":11.6206,"d":"1980-04-08","k":"n","a":0,"i":380},{"n":"PADOVA","la":45.408,"lo":11.8859,"d":"1980-09-22","k":"n","a":0,"i":380},{"n":"VERONA","la":45.4385,"lo":10.9938,"d":"1981-03-07","k":"n","a":0,"i":380},{"n":"MANTOVA","la":45.1603,"lo":10.7978,"d":"1981-08-20","k":"n","a":0,"i":380},{"n":"FIRENZE","la":43.7792,"lo":11.2463,"d":"1982-02-03","k":"n","a":0,"i":380},{"n":"SIENA","la":43.3182,"lo":11.3306,"d":"1982-07-19","k":"n","a":0,"i":380},{"n":"ASCOLI PICENO","la":42.8535,"lo":13.5739,"d":"1983-01-01","k":"n","a":0,"i":380},{"n":"AURONZO","la":46.5592,"lo":12.4246,"d":"1983-06-17","k":"n","a":0,"i":380},{"n":"NISCEMI","la":37.1465,"lo":14.3938,"d":"1983-11-30","k":"n","a":0,"i":380},{"n":"GELA","la":37.0738,"lo":14.2404,"d":"1984-05-14","k":"n","a":0,"i":380},{"n":"SAN GIMIGNANO","la":43.4738,"lo":11.0297,"d":"1984-10-28","k":"n","a":0,"i":380},{"n":"BOLOGNA","la":44.4938,"lo":11.3387,"d":"1985-04-12","k":"n","a":0,"i":380},{"n":"SAN GIUSEPPE VESUVIANO","la":40.8356,"lo":14.5049,"d":"1985-09-25","k":"n","a":0,"i":380},{"n":"BAGOLINO","la":45.8252,"lo":10.4618,"d":"1986-03-11","k":"n","a":0,"i":380},{"n":"UDINE","la":46.0693,"lo":13.2371,"d":"1986-08-24","k":"n","a":0,"i":380},{"n":"PORDENONE","la":45.9569,"lo":12.6605,"d":"1987-02-06","k":"n","a":0,"i":380},{"n":"RIMINI","la":44.0575,"lo":12.5653,"d":"1987-05-01","k":"v","a":0,"i":380},{"n":"SAN MARINO","la":43.94,"lo":12.46,"d":"1987-05-01","k":"v","a":0,"i":674},{"n":"MALAGA","la":36.72,"lo":-4.42,"d":"1998-08-12","k":"v","a":0,"i":724},{"n":"TORREMOLINOS","la":36.6204,"lo":-4.4998,"d":"1998-08-14","k":"v","a":0,"i":724},{"n":"FUENGIROLA","la":36.54,"lo":-4.6247,"d":"1998-08-19","k":"v","a":0,"i":724},{"n":"MIJAS","la":36.5958,"lo":-4.6373,"d":"1998-08-23","k":"v","a":0,"i":724},{"n":"BARCELONA","la":41.39,"lo":2.17,"d":"1999-09-01","k":"v","a":0,"i":724},{"n":"GRANOLLERS","la":41.608,"lo":2.2877,"d":"1999-09-21","k":"v","a":0,"i":724},{"n":"TOSSA DE MAR","la":41.7167,"lo":2.9333,"d":"1999-11-01","k":"v","a":0,"i":724},{"n":"MONTSERRAT","la":41.5933,"lo":1.8377,"d":"1999-12-12","k":"v","a":0,"i":724},{"n":"VALENCIA","la":39.4739,"lo":-0.3797,"d":"2000-01-22","k":"v","a":0,"i":724},{"n":"MADRID","la":40.42,"lo":-3.7,"d":"2000-03-03","k":"v","a":0,"i":724},{"n":"TOLEDO","la":39.8581,"lo":-4.0226,"d":"2000-04-13","k":"v","a":0,"i":724},{"n":"GRANADA","la":37.1882,"lo":-3.6067,"d":"2000-05-24","k":"v","a":0,"i":724},{"n":"MALLORCA","la":39.6953,"lo":3.0176,"d":"2000-07-04","k":"v","a":0,"i":724},{"n":"NIZZA","la":43.7031,"lo":7.2661,"d":"2001-12-25","k":"v","a":0,"i":250},{"n":"SAN CANDIDO","la":46.7324,"lo":12.2785,"d":"2002-04-23","k":"n","a":0,"i":380},{"n":"REGGIO EMILIA","la":44.6983,"lo":10.6312,"d":"2002-09-17","k":"n","a":0,"i":380},{"n":"LA SPEZIA","la":44.103,"lo":9.8238,"d":"2002-11-29","k":"n","a":0,"i":380},{"n":"GENOVA","la":44.4048,"lo":8.9444,"d":"2003-02-10","k":"n","a":0,"i":380},{"n":"BRESCIA","la":45.5356,"lo":10.2147,"d":"2003-04-25","k":"v","a":0,"i":380},{"n":"FRIBURGO","la":46.8024,"lo":7.1513,"d":"2003-06-01","k":"v","a":0,"i":756},{"n":"GINEVRA","la":46.2,"lo":6.14,"d":"2003-06-01","k":"v","a":0,"i":756},{"n":"LOSANNA","la":46.516,"lo":6.6328,"d":"2003-06-01","k":"v","a":0,"i":756},{"n":"MARTIGNY","la":46.1028,"lo":7.0724,"d":"2003-06-01","k":"v","a":0,"i":756},{"n":"MONTE BIANCO","la":45.8326,"lo":6.8652,"d":"2003-06-01","k":"v","a":0,"i":380},{"n":"LONDRA","la":51.51,"lo":-0.13,"d":"2003-10-21","k":"v","a":0,"i":826},{"n":"ALGECIRAS","la":36.1333,"lo":-5.4505,"d":"2003-11-01","k":"s","a":0,"i":724},{"n":"CASABLANCA","la":33.57,"lo":-7.59,"d":"2003-11-01","k":"v","a":0,"i":504},{"n":"TANGERI","la":35.76,"lo":-5.83,"d":"2003-11-01","k":"s","a":0,"i":504},{"n":"SIVIGLIA","la":37.39,"lo":-5.99,"d":"2004-01-31","k":"v","a":0,"i":724},{"n":"FEZ","la":34.0331,"lo":-5.0003,"d":"2004-02-02","k":"n","a":0,"i":504},{"n":"MEKNES","la":33.8935,"lo":-5.5473,"d":"2004-02-03","k":"n","a":0,"i":504},{"n":"MERZOUGA","la":31.0993,"lo":-4.0128,"d":"2004-02-05","k":"n","a":0,"i":504},{"n":"MARRAKECH","la":31.63,"lo":-7.99,"d":"2004-02-06","k":"v","a":0,"i":504},{"n":"DAR BUAZZA","la":33.5167,"lo":-7.8,"d":"2004-02-07","k":"n","a":0,"i":504},{"n":"OUM ERRABIA","la":32.9,"lo":-5.6,"d":"2004-02-08","k":"n","a":1,"i":504},{"n":"KHENIFRA","la":32.9342,"lo":-5.6678,"d":"2004-02-10","k":"n","a":0,"i":504},{"n":"ASILAH","la":35.4652,"lo":-6.0342,"d":"2004-02-11","k":"n","a":0,"i":504},{"n":"TANGER","la":35.7673,"lo":-5.7998,"d":"2004-02-12","k":"n","a":0,"i":504},{"n":"MOULAY BOUSSELHAM","la":34.8731,"lo":-6.2956,"d":"2004-02-13","k":"n","a":0,"i":504},{"n":"BIN EL OUIDANE","la":32.1167,"lo":-6.4333,"d":"2004-02-14","k":"n","a":0,"i":504},{"n":"EL JADIDA","la":33.2568,"lo":-8.5088,"d":"2004-02-16","k":"n","a":0,"i":504},{"n":"OUZUM","la":32.0117,"lo":-6.7189,"d":"2004-02-17","k":"n","a":0,"i":504},{"n":"AGADIR","la":30.4202,"lo":-9.5982,"d":"2004-02-18","k":"n","a":0,"i":504},{"n":"ESSAOUIRA","la":31.5125,"lo":-9.77,"d":"2004-02-19","k":"n","a":0,"i":504},{"n":"OUALIDIA","la":32.7367,"lo":-9.0339,"d":"2004-02-21","k":"n","a":0,"i":504},{"n":"RABAT","la":34.0132,"lo":-6.8326,"d":"2004-02-22","k":"v","a":0,"i":504},{"n":"BRUXELLES","la":50.85,"lo":4.35,"d":"2004-02-23","k":"v","a":0,"i":56},{"n":"CEUTA","la":35.89,"lo":-5.32,"d":"2004-06-01","k":"v","a":0,"i":504},{"n":"TETUAN","la":35.5785,"lo":-5.3684,"d":"2004-06-01","k":"v","a":0,"i":504},{"n":"ARLES SUR TECH","la":42.457,"lo":2.633,"d":"2005-07-26","k":"v","a":0,"i":250},{"n":"COLLIOURE","la":42.53,"lo":3.08,"d":"2005-07-26","k":"v","a":0,"i":250},{"n":"PORT DE LA SELVA","la":42.3361,"lo":3.2047,"d":"2005-07-26","k":"v","a":0,"i":724},{"n":"DUBROVNIK","la":42.65,"lo":18.09,"d":"2005-08-03","k":"v","a":0,"i":191},{"n":"KURZOLA","la":42.9594,"lo":17.1352,"d":"2005-08-03","k":"v","a":0,"i":191},{"n":"DRVENIK","la":43.17,"lo":17.2,"d":"2005-08-14","k":"v","a":1,"i":191},{"n":"FAZANA","la":44.9275,"lo":13.8,"d":"2005-08-14","k":"v","a":0,"i":191},{"n":"HVAR","la":43.1729,"lo":16.4412,"d":"2005-08-14","k":"v","a":0,"i":191},{"n":"LUBIANA","la":46.06,"lo":14.51,"d":"2005-08-14","k":"v","a":0,"i":705},{"n":"MEDULIN","la":44.8167,"lo":13.9333,"d":"2005-08-14","k":"v","a":0,"i":191},{"n":"PAG","la":44.4441,"lo":15.0553,"d":"2005-08-14","k":"v","a":0,"i":191},{"n":"POLA","la":44.8666,"lo":13.8496,"d":"2005-08-14","k":"v","a":0,"i":191},{"n":"RIJEKA","la":45.3271,"lo":14.4422,"d":"2005-08-14","k":"v","a":0,"i":191},{"n":"SPLIT","la":43.5081,"lo":16.4402,"d":"2005-08-14","k":"v","a":0,"i":191},{"n":"POSTOJNA","la":45.7744,"lo":14.2136,"d":"2005-08-18","k":"v","a":0,"i":705},{"n":"PREMANTURA","la":44.7928,"lo":13.9078,"d":"2005-08-18","k":"v","a":0,"i":191},{"n":"ARAN ISLANDS","la":53.12,"lo":-9.75,"d":"2005-12-02","k":"v","a":0,"i":372},{"n":"GALWAY","la":53.2724,"lo":-9.051,"d":"2005-12-02","k":"v","a":0,"i":372},{"n":"GIRONA","la":41.9831,"lo":2.8249,"d":"2005-12-02","k":"n","a":0,"i":724},{"n":"MOHAR CLIFFS","la":52.9719,"lo":-9.4265,"d":"2005-12-02","k":"v","a":0,"i":372},{"n":"SHANNON","la":52.7039,"lo":-8.8642,"d":"2005-12-02","k":"s","a":0,"i":372},{"n":"PARIGI","la":48.86,"lo":2.35,"d":"2006-04-13","k":"v","a":0,"i":250},{"n":"BILBAO","la":43.2627,"lo":-2.9253,"d":"2006-04-26","k":"n","a":0,"i":724},{"n":"LOGROÑO","la":42.4661,"lo":-2.4512,"d":"2006-05-12","k":"n","a":0,"i":724},{"n":"VALL DE BUÍ","la":42.5167,"lo":0.8333,"d":"2006-06-13","k":"n","a":0,"i":724},{"n":"LISBONA","la":38.72,"lo":-9.14,"d":"2006-07-14","k":"v","a":0,"i":620},{"n":"SETUBAL","la":38.5244,"lo":-8.8882,"d":"2006-07-14","k":"v","a":0,"i":620},{"n":"SINTRA","la":38.801,"lo":-9.3783,"d":"2006-07-14","k":"v","a":0,"i":620},{"n":"BESSANÇON","la":47.24,"lo":6.02,"d":"2006-08-06","k":"v","a":0,"i":250},{"n":"MILLAU","la":44.0997,"lo":3.0785,"d":"2006-08-06","k":"v","a":0,"i":250},{"n":"MÜNSTER","la":51.96,"lo":7.63,"d":"2006-08-07","k":"v","a":0,"i":276},{"n":"COPENAGHEN","la":55.68,"lo":12.57,"d":"2006-08-09","k":"v","a":0,"i":208},{"n":"ENSCHENDE","la":52.22,"lo":6.9,"d":"2006-08-09","k":"v","a":0,"i":528},{"n":"MALMÖ","la":55.6,"lo":13.0,"d":"2006-08-12","k":"v","a":0,"i":752},{"n":"BOHUS","la":57.8444,"lo":12.0114,"d":"2006-08-16","k":"v","a":0,"i":752},{"n":"GOTTSKAR","la":57.3833,"lo":11.9167,"d":"2006-08-16","k":"v","a":0,"i":752},{"n":"ORUST","la":58.15,"lo":11.65,"d":"2006-08-16","k":"v","a":0,"i":752},{"n":"OSLO","la":59.91,"lo":10.75,"d":"2006-08-16","k":"v","a":0,"i":578},{"n":"ARENDAL","la":58.4617,"lo":8.7721,"d":"2006-08-20","k":"v","a":0,"i":578},{"n":"DALEN","la":59.4458,"lo":7.9922,"d":"2006-08-20","k":"v","a":0,"i":578},{"n":"FLEKKEFJORD","la":58.2969,"lo":6.6619,"d":"2006-08-20","k":"v","a":0,"i":578},{"n":"GOTEBORG","la":57.7072,"lo":11.9668,"d":"2006-08-20","k":"v","a":0,"i":752},{"n":"HALMSTAD","la":56.6745,"lo":12.8568,"d":"2006-08-20","k":"v","a":0,"i":752},{"n":"LYSEBOTN","la":59.0522,"lo":6.6556,"d":"2006-08-20","k":"v","a":0,"i":578},{"n":"PREIKESTOLEN","la":58.9863,"lo":6.1904,"d":"2006-08-20","k":"v","a":0,"i":578},{"n":"TROLLHATTAN","la":58.2837,"lo":12.2886,"d":"2006-08-20","k":"v","a":0,"i":752},{"n":"BERLINO","la":52.52,"lo":13.4,"d":"2006-08-22","k":"v","a":0,"i":276},{"n":"GRANSEE","la":53.007,"lo":13.1575,"d":"2006-08-22","k":"v","a":0,"i":276},{"n":"SASSNITZ","la":54.5157,"lo":13.6445,"d":"2006-08-22","k":"s","a":0,"i":276},{"n":"TRELLEBORG","la":55.375,"lo":13.1569,"d":"2006-08-22","k":"v","a":0,"i":752},{"n":"CORTINA D'AMPEZZO","la":46.5369,"lo":12.139,"d":"2006-08-26","k":"v","a":0,"i":380},{"n":"MONACO","la":48.1351,"lo":11.582,"d":"2006-08-26","k":"v","a":0,"i":276},{"n":"OPORTO","la":41.15,"lo":-8.61,"d":"2006-12-05","k":"v","a":0,"i":620},{"n":"EDINBURGO","la":55.95,"lo":-3.19,"d":"2006-12-23","k":"v","a":0,"i":826},{"n":"ELLEAN CASTLE","la":57.2736,"lo":-5.5164,"d":"2006-12-23","k":"v","a":0,"i":826},{"n":"ISLE OF SKYE","la":57.3619,"lo":-6.2473,"d":"2006-12-23","k":"v","a":0,"i":826},{"n":"GLASGOW","la":55.8651,"lo":-4.2576,"d":"2007-01-01","k":"v","a":0,"i":826},{"n":"AVIGNON","la":43.9483,"lo":4.8089,"d":"2007-04-06","k":"v","a":0,"i":250},{"n":"CHATEAUDOUBLE","la":43.5833,"lo":6.4667,"d":"2007-04-06","k":"v","a":0,"i":250},{"n":"DRAGUIGNAN","la":43.54,"lo":6.47,"d":"2007-04-06","k":"v","a":0,"i":250},{"n":"GORGES DU VERDON","la":43.7633,"lo":6.3329,"d":"2007-04-06","k":"v","a":0,"i":250},{"n":"MONTPELLIER","la":43.61,"lo":3.88,"d":"2007-04-06","k":"v","a":0,"i":250},{"n":"MOUSTIER","la":43.8456,"lo":6.2206,"d":"2007-04-06","k":"v","a":0,"i":250},{"n":"TIRGANCE","la":43.76,"lo":6.4333,"d":"2007-04-06","k":"v","a":0,"i":250},{"n":"VILANOVA DE MILFONTES","la":37.7261,"lo":-8.7872,"d":"2007-08-07","k":"v","a":0,"i":620},{"n":"MELIDES","la":38.1519,"lo":-8.7733,"d":"2007-08-08","k":"v","a":0,"i":620},{"n":"SINES","la":37.9562,"lo":-8.8698,"d":"2007-08-09","k":"v","a":0,"i":620},{"n":"ARRIFANA","la":37.2889,"lo":-8.8639,"d":"2007-08-12","k":"v","a":0,"i":620},{"n":"ODEMIRA","la":37.598,"lo":-8.6397,"d":"2007-08-13","k":"v","a":0,"i":620},{"n":"NARBONNE","la":43.184,"lo":3.0014,"d":"2007-11-02","k":"v","a":0,"i":250},{"n":"SANT GUILHEM DU DESERT","la":43.7344,"lo":3.5472,"d":"2007-11-02","k":"v","a":0,"i":250},{"n":"ALBUFERA","la":39.33,"lo":-0.35,"d":"2008-01-14","k":"n","a":0,"i":724},{"n":"DELTA DE L'EBRE","la":40.7167,"lo":0.8667,"d":"2008-01-22","k":"n","a":0,"i":724},{"n":"NAVACERRADA","la":40.7291,"lo":-4.017,"d":"2008-02-07","k":"n","a":0,"i":724},{"n":"DINGLE","la":52.1408,"lo":-10.2689,"d":"2008-02-12","k":"v","a":0,"i":372},{"n":"DUBLINO","la":53.35,"lo":-6.26,"d":"2008-02-12","k":"v","a":0,"i":372},{"n":"KILLARNEY","la":52.0599,"lo":-9.5044,"d":"2008-02-13","k":"v","a":0,"i":372},{"n":"KENMARE","la":51.8833,"lo":-9.5833,"d":"2008-02-15","k":"v","a":0,"i":372},{"n":"CASTLECOVE","la":51.7683,"lo":-10.0,"d":"2008-02-16","k":"v","a":1,"i":372},{"n":"CASTLEQUIN","la":51.75,"lo":-10.05,"d":"2008-02-17","k":"v","a":1,"i":372},{"n":"SALISBURY","la":51.0693,"lo":-1.7957,"d":"2008-02-20","k":"v","a":0,"i":826},{"n":"WINCHESTER","la":51.0651,"lo":-1.3187,"d":"2008-02-22","k":"v","a":0,"i":826},{"n":"CANTERBURY","la":51.279,"lo":1.0799,"d":"2008-02-23","k":"v","a":0,"i":826},{"n":"DOVER","la":51.126,"lo":1.3126,"d":"2008-02-25","k":"v","a":0,"i":826},{"n":"CIVITAVECCHIA","la":42.0932,"lo":11.7967,"d":"2008-05-04","k":"v","a":0,"i":380},{"n":"ROMA","la":41.9,"lo":12.5,"d":"2008-05-04","k":"v","a":0,"i":380},{"n":"FRANCOFORTE","la":50.11,"lo":8.68,"d":"2008-05-16","k":"v","a":0,"i":276},{"n":"SALVADOR","la":-12.97,"lo":-38.51,"d":"2008-05-17","k":"v","a":0,"i":76},{"n":"BOIPEBA","la":-13.6,"lo":-38.9,"d":"2008-05-18","k":"n","a":0,"i":76},{"n":"LENÇOIS","la":-2.4833,"lo":-43.1,"d":"2008-05-22","k":"n","a":0,"i":76},{"n":"RECIFE","la":-8.05,"lo":-34.88,"d":"2008-05-29","k":"v","a":0,"i":76},{"n":"OLINDA","la":-8.0089,"lo":-34.8553,"d":"2008-06-02","k":"v","a":0,"i":76},{"n":"PIAÇABUÇU","la":-10.4056,"lo":-36.4344,"d":"2008-06-06","k":"n","a":0,"i":76},{"n":"NATAL","la":-5.795,"lo":-35.2094,"d":"2008-06-09","k":"n","a":0,"i":76},{"n":"FORTALEZA","la":-3.7172,"lo":-38.5431,"d":"2008-06-13","k":"n","a":0,"i":76},{"n":"SAO LUIS","la":-2.5297,"lo":-44.3028,"d":"2008-06-17","k":"n","a":0,"i":76},{"n":"BRASILIA","la":-15.7797,"lo":-47.9297,"d":"2008-06-20","k":"n","a":0,"i":76},{"n":"RIO DE JANEIRO","la":-22.9064,"lo":-43.1822,"d":"2008-06-24","k":"n","a":0,"i":76},{"n":"SAO PAULO","la":-23.5475,"lo":-46.6361,"d":"2008-06-28","k":"v","a":0,"i":76},{"n":"FLORIANOPOLIS","la":-27.5967,"lo":-48.5492,"d":"2008-07-01","k":"n","a":0,"i":76},{"n":"PIPA","la":-6.2294,"lo":-35.0467,"d":"2008-07-05","k":"v","a":0,"i":76},{"n":"PORTO DE GALINHAS","la":-8.5074,"lo":-35.0043,"d":"2008-07-09","k":"n","a":0,"i":76},{"n":"CANOA QUEBRADA","la":-4.5297,"lo":-37.7,"d":"2008-07-12","k":"n","a":0,"i":76},{"n":"UBAJARA","la":-3.8544,"lo":-40.9211,"d":"2008-07-16","k":"n","a":0,"i":76},{"n":"JERICOACOARA","la":-2.895,"lo":-40.4492,"d":"2008-07-20","k":"n","a":0,"i":76},{"n":"TATAJUBA","la":-2.9633,"lo":-40.5,"d":"2008-07-24","k":"n","a":0,"i":76},{"n":"ATINS","la":-2.5702,"lo":-42.7423,"d":"2008-07-27","k":"n","a":0,"i":76},{"n":"TERESINA","la":-5.0892,"lo":-42.8019,"d":"2008-07-31","k":"n","a":0,"i":76},{"n":"SERRA DA CAPIVARA","la":-8.8333,"lo":-42.5333,"d":"2008-08-04","k":"n","a":0,"i":76},{"n":"DIAMANTINA","la":-18.2469,"lo":-43.6035,"d":"2008-08-11","k":"n","a":0,"i":76},{"n":"BELO HORIZONTE","la":-19.9208,"lo":-43.9378,"d":"2008-08-15","k":"n","a":0,"i":76},{"n":"OUROPRETO","la":-20.3856,"lo":-43.5036,"d":"2008-08-18","k":"n","a":0,"i":76},{"n":"SAO TOMÉ DAS LETRAS","la":-21.7167,"lo":-44.9833,"d":"2008-08-22","k":"n","a":0,"i":76},{"n":"ARRAIAL DO CABO","la":-22.9661,"lo":-42.0278,"d":"2008-08-29","k":"n","a":0,"i":76},{"n":"PARATY","la":-23.2178,"lo":-44.7131,"d":"2008-09-02","k":"n","a":0,"i":76},{"n":"CURITIBA","la":-25.4278,"lo":-49.2731,"d":"2008-09-06","k":"n","a":0,"i":76},{"n":"ITAIPU","la":-25.4086,"lo":-54.5886,"d":"2008-09-09","k":"n","a":0,"i":76},{"n":"UBATUBA","la":-23.4339,"lo":-45.0711,"d":"2008-09-13","k":"n","a":0,"i":76},{"n":"CABOFRIO","la":-22.8794,"lo":-42.0186,"d":"2008-09-17","k":"n","a":0,"i":76},{"n":"VITÓRIA","la":-20.3194,"lo":-40.3378,"d":"2008-09-20","k":"n","a":0,"i":76},{"n":"PORTO SEGURO","la":-16.4497,"lo":-39.0647,"d":"2008-09-24","k":"n","a":0,"i":76},{"n":"ARRAIAL D'AJUDA","la":-16.4833,"lo":-39.0667,"d":"2008-09-28","k":"n","a":0,"i":76},{"n":"FOZ DE IGUAZU","la":-25.54,"lo":-54.59,"d":"2008-09-30","k":"v","a":0,"i":76},{"n":"PUERTO IGUAZU","la":-25.5991,"lo":-54.5735,"d":"2008-09-30","k":"v","a":0,"i":32},{"n":"CARDOSO","la":43.99,"lo":10.31,"d":"2009-01-07","k":"n","a":1,"i":380},{"n":"FOGGIA","la":41.4584,"lo":15.5519,"d":"2009-02-16","k":"n","a":0,"i":380},{"n":"OSTUNI","la":40.7291,"lo":17.5768,"d":"2009-03-01","k":"n","a":0,"i":380},{"n":"L'AQUILA","la":42.3505,"lo":13.3995,"d":"2009-03-15","k":"v","a":0,"i":380},{"n":"PESCARA","la":42.4584,"lo":14.2028,"d":"2009-03-28","k":"v","a":0,"i":380},{"n":"COLLI EUGANEI","la":45.3,"lo":11.7,"d":"2009-04-24","k":"n","a":0,"i":380},{"n":"MILANO","la":45.46,"lo":9.19,"d":"2009-05-21","k":"v","a":0,"i":380},{"n":"COMO","la":45.8082,"lo":9.0832,"d":"2009-06-04","k":"n","a":0,"i":380},{"n":"URBINO","la":43.7262,"lo":12.6363,"d":"2009-07-01","k":"n","a":0,"i":380},{"n":"VESTEA","la":42.38,"lo":13.9,"d":"2009-07-14","k":"n","a":1,"i":380},{"n":"PESCHICI","la":41.9452,"lo":16.0161,"d":"2009-07-27","k":"n","a":0,"i":380},{"n":"VIESTE","la":41.8821,"lo":16.1714,"d":"2009-08-10","k":"n","a":0,"i":380},{"n":"TERMOLI","la":41.9999,"lo":14.9939,"d":"2009-08-23","k":"n","a":0,"i":380},{"n":"LUANDA","la":-8.84,"lo":13.23,"d":"2009-09-13","k":"v","a":0,"i":24},{"n":"MBANZA CONGO","la":-6.2667,"lo":14.2383,"d":"2009-09-14","k":"v","a":0,"i":24},{"n":"SOYO","la":-6.1349,"lo":12.3689,"d":"2009-09-18","k":"v","a":0,"i":24},{"n":"PEDRA DO FETIÇO","la":-9.67,"lo":15.58,"d":"2009-09-25","k":"v","a":1,"i":24},{"n":"KIBALA","la":-10.7337,"lo":14.98,"d":"2009-10-12","k":"v","a":0,"i":24},{"n":"NDALATANDO","la":-9.2978,"lo":14.9116,"d":"2009-10-16","k":"v","a":0,"i":24},{"n":"LUCALA","la":-9.2727,"lo":15.2521,"d":"2009-10-26","k":"v","a":0,"i":24},{"n":"CALANDULA","la":-9.0667,"lo":16.0,"d":"2009-10-30","k":"v","a":0,"i":24},{"n":"DONDO","la":-9.6846,"lo":14.4279,"d":"2009-11-02","k":"v","a":0,"i":24},{"n":"MASSANGANO","la":-9.62,"lo":13.43,"d":"2009-11-06","k":"v","a":0,"i":24},{"n":"ORLEANS","la":47.9025,"lo":1.9041,"d":"2010-03-12","k":"v","a":0,"i":250},{"n":"TOULOUSE","la":43.6043,"lo":1.4437,"d":"2010-03-21","k":"v","a":0,"i":250},{"n":"CARCASSONNE","la":43.2165,"lo":2.3486,"d":"2010-03-29","k":"v","a":0,"i":250},{"n":"EL NIÑO DE MULA","la":38.03,"lo":-1.48,"d":"2010-04-04","k":"n","a":1,"i":724},{"n":"ALMANSA","la":38.8692,"lo":-1.0971,"d":"2010-04-08","k":"n","a":0,"i":724},{"n":"CUENCA","la":40.0667,"lo":-2.1333,"d":"2010-04-12","k":"n","a":0,"i":724},{"n":"SEGOVIA","la":40.9481,"lo":-4.1184,"d":"2010-04-16","k":"n","a":0,"i":724},{"n":"TORLA","la":42.6333,"lo":-0.1,"d":"2010-04-24","k":"n","a":0,"i":724},{"n":"VAL DE ORDESA","la":42.65,"lo":-0.05,"d":"2010-04-28","k":"n","a":0,"i":724},{"n":"AINSA","la":42.4155,"lo":0.1401,"d":"2010-05-02","k":"n","a":0,"i":724},{"n":"PEDRAFORCA","la":42.2392,"lo":1.7,"d":"2010-05-06","k":"n","a":0,"i":724},{"n":"OLOT","la":42.181,"lo":2.4901,"d":"2010-05-10","k":"n","a":0,"i":724},{"n":"TIVOLI","la":41.9595,"lo":12.8016,"d":"2010-05-25","k":"v","a":0,"i":380},{"n":"LUENA","la":-11.7833,"lo":19.9167,"d":"2010-07-16","k":"v","a":0,"i":24},{"n":"MENONGUE","la":-14.66,"lo":17.69,"d":"2010-07-18","k":"v","a":0,"i":24},{"n":"LUAU","la":-10.7073,"lo":22.2247,"d":"2010-07-20","k":"v","a":0,"i":24},{"n":"LAGO DILOLO","la":-11.58,"lo":22.0,"d":"2010-07-27","k":"v","a":1,"i":24},{"n":"CAZOMBO","la":-11.8991,"lo":22.9022,"d":"2010-07-30","k":"v","a":0,"i":24},{"n":"MAVINGA","la":-15.8,"lo":20.35,"d":"2010-08-06","k":"v","a":1,"i":24},{"n":"KUITO KUANAVALE","la":-15.17,"lo":19.18,"d":"2010-08-08","k":"v","a":0,"i":24},{"n":"RIVUNGO","la":-16.4,"lo":21.7,"d":"2010-08-11","k":"v","a":1,"i":24},{"n":"KUANGAR","la":-17.75,"lo":19.4,"d":"2010-08-22","k":"v","a":1,"i":24},{"n":"KALAI","la":-17.9,"lo":19.1,"d":"2010-08-24","k":"v","a":1,"i":516},{"n":"KATWITWI","la":-17.85,"lo":19.15,"d":"2010-08-25","k":"v","a":1,"i":516},{"n":"DIRICO","la":-17.97,"lo":20.77,"d":"2010-08-27","k":"v","a":0,"i":24},{"n":"HUAMBO","la":-12.7761,"lo":15.7392,"d":"2010-08-31","k":"v","a":0,"i":24},{"n":"RUNDU","la":-17.93,"lo":19.77,"d":"2010-09-01","k":"v","a":0,"i":516},{"n":"ORVIETO","la":42.7186,"lo":12.1117,"d":"2010-12-12","k":"v","a":0,"i":380},{"n":"PITIGNANO","la":42.6333,"lo":11.67,"d":"2010-12-12","k":"v","a":1,"i":380},{"n":"SAN GALGANO","la":43.1519,"lo":11.1625,"d":"2010-12-12","k":"v","a":0,"i":380},{"n":"SUMBE","la":-11.206,"lo":13.8437,"d":"2011-02-18","k":"v","a":0,"i":24},{"n":"FREETOWN","la":8.48,"lo":-13.23,"d":"2011-04-29","k":"v","a":0,"i":694},{"n":"KABALA","la":9.5889,"lo":-11.5526,"d":"2011-04-29","k":"v","a":0,"i":694},{"n":"TOKEH","la":8.3,"lo":-13.2,"d":"2011-05-03","k":"v","a":1,"i":694},{"n":"MAKENI","la":8.886,"lo":-12.0442,"d":"2011-05-20","k":"v","a":0,"i":694},{"n":"OUTAMBA KILIMI","la":9.7,"lo":-11.9,"d":"2011-05-29","k":"v","a":1,"i":694},{"n":"YIFFIN","la":9.2,"lo":-11.7,"d":"2011-06-06","k":"v","a":1,"i":694},{"n":"MONGO BENDUGU","la":9.1,"lo":-11.4,"d":"2011-06-15","k":"v","a":1,"i":694},{"n":"SINKUNIA","la":9.9,"lo":-11.5,"d":"2011-06-24","k":"v","a":1,"i":694},{"n":"FALABA","la":9.85,"lo":-11.3,"d":"2011-07-02","k":"v","a":0,"i":694},{"n":"SUMBARIA","la":9.75,"lo":-11.0,"d":"2011-07-11","k":"v","a":1,"i":324},{"n":"BAFODIA","la":9.97,"lo":-11.37,"d":"2011-07-20","k":"v","a":1,"i":694},{"n":"KAMABAI","la":9.2,"lo":-11.9,"d":"2011-07-28","k":"v","a":1,"i":694},{"n":"ARLES","la":43.6768,"lo":4.6303,"d":"2011-09-08","k":"v","a":0,"i":250},{"n":"ANGERA","la":45.7756,"lo":8.5786,"d":"2011-09-11","k":"v","a":0,"i":380},{"n":"BANJUL","la":13.4527,"lo":-16.578,"d":"2011-11-17","k":"s","a":0,"i":270},{"n":"MONROVIA","la":6.3005,"lo":-10.7969,"d":"2011-11-17","k":"s","a":0,"i":430},{"n":"BO","la":7.9647,"lo":-11.7383,"d":"2012-01-25","k":"v","a":0,"i":694},{"n":"BANANA ISLAND","la":8.1167,"lo":-13.2333,"d":"2012-03-20","k":"v","a":0,"i":694},{"n":"POT LOKO","la":8.7667,"lo":-12.7833,"d":"2012-04-17","k":"v","a":0,"i":694},{"n":"TIWAI ISLAND","la":7.55,"lo":-11.35,"d":"2012-05-15","k":"v","a":0,"i":694},{"n":"MARSIGLIA","la":43.3,"lo":5.37,"d":"2012-06-16","k":"v","a":0,"i":250},{"n":"VARSAVIA","la":52.23,"lo":21.01,"d":"2012-09-07","k":"v","a":0,"i":616},{"n":"MIKOLAJKI","la":53.8029,"lo":21.5701,"d":"2012-09-09","k":"v","a":0,"i":616},{"n":"KRAKOW","la":50.0614,"lo":19.9366,"d":"2012-09-13","k":"v","a":0,"i":616},{"n":"AUSCHWITZ","la":50.0344,"lo":19.2104,"d":"2012-09-17","k":"v","a":0,"i":616},{"n":"KOMOROW","la":52.1456,"lo":20.8157,"d":"2012-09-21","k":"v","a":0,"i":616},{"n":"MOMBAI","la":19.08,"lo":72.88,"d":"2012-11-28","k":"v","a":0,"i":356},{"n":"VARANASI","la":25.3167,"lo":83.0104,"d":"2012-11-29","k":"v","a":0,"i":356},{"n":"HAMPI","la":15.3352,"lo":76.4609,"d":"2012-12-01","k":"v","a":0,"i":356},{"n":"KOCHI","la":9.9399,"lo":76.2602,"d":"2012-12-03","k":"v","a":0,"i":356},{"n":"GOA","la":15.3891,"lo":73.8149,"d":"2012-12-06","k":"v","a":0,"i":356},{"n":"ELLORA","la":20.0258,"lo":75.178,"d":"2012-12-08","k":"v","a":0,"i":356},{"n":"AJANTA","la":20.5519,"lo":75.7033,"d":"2012-12-10","k":"v","a":0,"i":356},{"n":"KAJURAHO","la":24.8481,"lo":79.9335,"d":"2012-12-13","k":"v","a":0,"i":356},{"n":"SARNATH","la":25.3811,"lo":83.0242,"d":"2012-12-15","k":"v","a":0,"i":356},{"n":"ORCHHA","la":25.3514,"lo":78.6407,"d":"2012-12-17","k":"v","a":0,"i":356},{"n":"GOKARNA","la":14.55,"lo":74.3167,"d":"2012-12-20","k":"v","a":0,"i":356},{"n":"MUNNAR","la":10.0882,"lo":77.0624,"d":"2012-12-22","k":"v","a":0,"i":356},{"n":"KOLLAM","la":8.8811,"lo":76.5847,"d":"2012-12-24","k":"v","a":0,"i":356},{"n":"ZAKOPANE","la":49.299,"lo":19.9489,"d":"2013-01-05","k":"v","a":0,"i":616},{"n":"DOHA","la":25.2855,"lo":51.531,"d":"2013-01-15","k":"s","a":0,"i":634},{"n":"JOHANNESBURG","la":-26.2023,"lo":28.0436,"d":"2013-01-15","k":"s","a":0,"i":710},{"n":"MAPUTO","la":-25.97,"lo":32.57,"d":"2013-01-15","k":"v","a":0,"i":508},{"n":"BILENE","la":-25.28,"lo":33.2,"d":"2013-01-20","k":"v","a":0,"i":508},{"n":"ISLA DE INHACA","la":-26.0,"lo":32.9,"d":"2013-01-30","k":"v","a":0,"i":508},{"n":"MAÇANETA","la":-25.75,"lo":32.7,"d":"2013-02-09","k":"v","a":1,"i":508},{"n":"KOMATIPOORT","la":-25.4332,"lo":31.9548,"d":"2013-02-14","k":"v","a":0,"i":710},{"n":"MALELANE","la":-25.4833,"lo":31.5167,"d":"2013-02-14","k":"v","a":0,"i":710},{"n":"SKUKUZA","la":-24.9922,"lo":31.5922,"d":"2013-02-14","k":"v","a":0,"i":710},{"n":"MENERBES","la":43.8324,"lo":5.206,"d":"2013-11-19","k":"v","a":0,"i":250},{"n":"MONTEAUX","la":44.0,"lo":5.3,"d":"2013-11-19","k":"v","a":1,"i":250},{"n":"ARUSHA","la":-3.37,"lo":36.68,"d":"2013-12-03","k":"v","a":0,"i":834},{"n":"ISTANBUL","la":41.01,"lo":28.97,"d":"2013-12-03","k":"v","a":0,"i":792},{"n":"ZANZIBAR","la":-6.1639,"lo":39.1979,"d":"2013-12-05","k":"v","a":0,"i":834},{"n":"KENDWA","la":-5.73,"lo":39.29,"d":"2013-12-09","k":"v","a":0,"i":834},{"n":"SERENGETI","la":-2.3333,"lo":34.8333,"d":"2013-12-14","k":"v","a":0,"i":834},{"n":"NGORONGORO","la":-3.2397,"lo":35.4875,"d":"2013-12-19","k":"v","a":0,"i":834},{"n":"MANYARA LAKE","la":-3.6,"lo":35.8,"d":"2013-12-23","k":"v","a":0,"i":834},{"n":"FUERTEVENTURA","la":28.3587,"lo":-14.0537,"d":"2014-01-01","k":"n","a":0,"i":724},{"n":"LANZAROTE","la":29.0469,"lo":-13.59,"d":"2014-01-15","k":"n","a":0,"i":724},{"n":"LA GOMERA","la":28.0916,"lo":-17.1133,"d":"2014-01-28","k":"n","a":0,"i":724},{"n":"LA PALMA","la":28.6835,"lo":-17.7642,"d":"2014-02-11","k":"n","a":0,"i":724},{"n":"MENORCA","la":39.95,"lo":4.1,"d":"2014-02-25","k":"n","a":0,"i":724},{"n":"FORMENTERA","la":38.6947,"lo":1.4491,"d":"2014-03-10","k":"n","a":0,"i":724},{"n":"CORDOBA","la":37.8916,"lo":-4.7728,"d":"2014-04-06","k":"n","a":0,"i":724},{"n":"UBEDA","la":38.0133,"lo":-3.3705,"d":"2014-04-20","k":"n","a":0,"i":724},{"n":"VISO DEL MARQUES","la":38.5221,"lo":-3.5635,"d":"2014-05-04","k":"n","a":0,"i":724},{"n":"BELCHITE","la":41.3032,"lo":-0.7505,"d":"2014-05-17","k":"n","a":0,"i":724},{"n":"ZARAGOZA","la":41.6561,"lo":-0.8773,"d":"2014-05-31","k":"n","a":0,"i":724},{"n":"CADAQUES","la":42.2886,"lo":3.2771,"d":"2014-06-13","k":"n","a":0,"i":724},{"n":"AIGUESTORTES","la":42.5667,"lo":0.9333,"d":"2014-06-27","k":"n","a":0,"i":724},{"n":"BEGET","la":42.2672,"lo":2.2561,"d":"2014-07-11","k":"n","a":0,"i":724},{"n":"SIURANA","la":41.2644,"lo":0.9411,"d":"2014-07-24","k":"n","a":0,"i":724},{"n":"TARRAGONA","la":41.1191,"lo":1.2454,"d":"2014-08-07","k":"n","a":0,"i":724},{"n":"ALGHERO","la":40.56,"lo":8.32,"d":"2014-09-28","k":"v","a":0,"i":380},{"n":"CAPO COMINO","la":40.5333,"lo":9.8167,"d":"2014-09-28","k":"v","a":0,"i":380},{"n":"NUORO","la":40.3199,"lo":9.3257,"d":"2014-09-28","k":"v","a":0,"i":380},{"n":"OROSEI","la":40.3783,"lo":9.6925,"d":"2014-09-28","k":"v","a":0,"i":380},{"n":"TEL AVIV","la":32.08,"lo":34.78,"d":"2014-10-21","k":"v","a":0,"i":376},{"n":"GERUSALEMME","la":31.769,"lo":35.2163,"d":"2014-10-22","k":"v","a":0,"i":275},{"n":"EILAT","la":29.5581,"lo":34.9482,"d":"2014-10-26","k":"v","a":0,"i":376},{"n":"QISAREYYA","la":32.5,"lo":34.8933,"d":"2014-10-29","k":"v","a":0,"i":376},{"n":"KYRIAT GAT","la":31.61,"lo":34.7642,"d":"2014-11-01","k":"v","a":0,"i":376},{"n":"DEAD SEA","la":31.5,"lo":35.5,"d":"2014-11-05","k":"v","a":0,"i":400},{"n":"AMSTERDAM","la":52.37,"lo":4.9,"d":"2014-12-13","k":"v","a":0,"i":528},{"n":"DELFT","la":52.0067,"lo":4.3556,"d":"2014-12-13","k":"v","a":0,"i":528},{"n":"MONT SAINT MICHEL","la":48.636,"lo":-1.5115,"d":"2015-07-03","k":"v","a":0,"i":250},{"n":"DINAN","la":48.45,"lo":-2.0333,"d":"2015-07-05","k":"v","a":0,"i":250},{"n":"DINARD","la":48.6314,"lo":-2.0614,"d":"2015-07-07","k":"v","a":0,"i":250},{"n":"SAINT BRIAC","la":48.6333,"lo":-2.1333,"d":"2015-07-08","k":"v","a":0,"i":250},{"n":"PERROS GUIREC","la":48.8145,"lo":-3.4396,"d":"2015-07-10","k":"v","a":0,"i":250},{"n":"PLYMOUTH","la":50.37,"lo":-4.14,"d":"2015-08-25","k":"v","a":0,"i":826},{"n":"BRISTOL","la":51.4552,"lo":-2.5966,"d":"2015-08-26","k":"v","a":0,"i":826},{"n":"POLPERRO","la":50.3326,"lo":-4.5163,"d":"2015-08-29","k":"v","a":0,"i":826},{"n":"LISKEARD","la":50.4545,"lo":-4.4652,"d":"2015-09-01","k":"v","a":0,"i":826},{"n":"BOSCASTLE","la":50.6846,"lo":-4.6937,"d":"2015-10-20","k":"v","a":0,"i":826},{"n":"PADSTOW","la":50.5388,"lo":-4.9366,"d":"2015-10-24","k":"v","a":0,"i":826},{"n":"TOTNES","la":50.4311,"lo":-3.6843,"d":"2015-10-28","k":"v","a":0,"i":826},{"n":"SERRAMBI","la":-8.5667,"lo":-35.0167,"d":"2015-12-09","k":"v","a":0,"i":76},{"n":"ADDIS ABEBA","la":9.025,"lo":38.7469,"d":"2016-01-08","k":"s","a":0,"i":231},{"n":"CAPAO","la":-12.6,"lo":-41.4833,"d":"2016-02-15","k":"v","a":0,"i":76},{"n":"MAMANGUAPE","la":-6.8386,"lo":-35.1261,"d":"2016-02-17","k":"v","a":0,"i":76},{"n":"LENÇÓIS","la":-12.5636,"lo":-41.3889,"d":"2016-02-19","k":"v","a":0,"i":76},{"n":"PRAIA DO FORTE","la":-12.5667,"lo":-38.0333,"d":"2016-02-22","k":"v","a":0,"i":76},{"n":"TIBAÚ DO SUL","la":-6.1867,"lo":-35.0919,"d":"2016-02-26","k":"v","a":0,"i":76},{"n":"PENEDO","la":-10.2903,"lo":-36.5864,"d":"2016-03-02","k":"v","a":0,"i":76},{"n":"PAULO AFONSO","la":-9.4061,"lo":-38.2147,"d":"2016-03-05","k":"v","a":0,"i":76},{"n":"PIRANHAS","la":-9.6247,"lo":-37.7567,"d":"2016-03-07","k":"v","a":0,"i":76},{"n":"CATIMBAU","la":-8.55,"lo":-37.25,"d":"2016-03-09","k":"v","a":0,"i":76},{"n":"JAPARATINGA","la":-9.0833,"lo":-35.2667,"d":"2016-03-12","k":"v","a":0,"i":76},{"n":"PESQUEIRA","la":-8.3578,"lo":-36.6964,"d":"2016-03-14","k":"v","a":0,"i":76},{"n":"BONITO","la":-8.4703,"lo":-35.7286,"d":"2016-03-16","k":"v","a":0,"i":76},{"n":"CARUARU","la":-8.2833,"lo":-35.9761,"d":"2016-03-19","k":"v","a":0,"i":76},{"n":"TAMBABA","la":-7.3,"lo":-34.8,"d":"2016-03-21","k":"v","a":0,"i":76},{"n":"NAZARÉ DA MATA","la":-7.7417,"lo":-35.2278,"d":"2016-03-23","k":"v","a":0,"i":76},{"n":"MATERA","la":40.666,"lo":16.6046,"d":"2016-07-31","k":"v","a":0,"i":380},{"n":"CATANZARO","la":38.8825,"lo":16.6009,"d":"2016-08-10","k":"v","a":0,"i":380},{"n":"TERRACINA","la":41.2917,"lo":13.2436,"d":"2016-08-20","k":"v","a":0,"i":380},{"n":"TRIUNFO","la":-7.8383,"lo":-38.1,"d":"2016-09-13","k":"v","a":0,"i":76},{"n":"SAO VICENTE FERRER","la":-7.5906,"lo":-35.4856,"d":"2017-02-10","k":"v","a":0,"i":76},{"n":"ANDORRA","la":42.5063,"lo":1.5218,"d":"2017-12-06","k":"v","a":0,"i":20},{"n":"FOIX","la":42.9667,"lo":1.6,"d":"2017-12-06","k":"v","a":0,"i":250},{"n":"NIOUX","la":42.9,"lo":1.6,"d":"2017-12-06","k":"v","a":0,"i":250},{"n":"PALERMO","la":38.12,"lo":13.36,"d":"2018-05-09","k":"v","a":0,"i":380},{"n":"MENFI","la":37.6041,"lo":12.9689,"d":"2018-05-10","k":"v","a":0,"i":380},{"n":"FAVIGNANA","la":37.9295,"lo":12.3296,"d":"2018-05-12","k":"v","a":0,"i":380},{"n":"TRAPANI","la":38.0176,"lo":12.5362,"d":"2018-05-15","k":"v","a":0,"i":380},{"n":"ERICE","la":38.0378,"lo":12.5878,"d":"2018-05-17","k":"v","a":0,"i":380},{"n":"CORVALLIS","la":44.56,"lo":-123.26,"d":"2018-06-09","k":"v","a":0,"i":840},{"n":"CRATER LAKE","la":42.9446,"lo":-122.109,"d":"2018-06-09","k":"v","a":0,"i":840},{"n":"NEWPORT","la":44.6368,"lo":-124.0535,"d":"2018-06-09","k":"v","a":0,"i":840},{"n":"SEATTLE","la":47.6062,"lo":-122.3321,"d":"2018-06-09","k":"s","a":0,"i":840},{"n":"AQABA","la":29.53,"lo":35.01,"d":"2018-10-19","k":"v","a":0,"i":400},{"n":"PETRA","la":30.3222,"lo":35.4793,"d":"2018-10-19","k":"v","a":0,"i":400},{"n":"WADI RUM","la":29.5724,"lo":35.4208,"d":"2018-10-19","k":"v","a":0,"i":400},{"n":"BETLEMME","la":31.7,"lo":35.2,"d":"2018-10-23","k":"v","a":0,"i":275},{"n":"JERICO","la":31.8667,"lo":35.45,"d":"2018-10-23","k":"v","a":0,"i":275},{"n":"BAUNEI","la":40.0313,"lo":9.6637,"d":"2019-07-18","k":"v","a":0,"i":380},{"n":"PORTO TORRES","la":40.84,"lo":8.4,"d":"2019-07-18","k":"v","a":0,"i":380},{"n":"CASTELSARDO","la":40.9126,"lo":8.7145,"d":"2019-07-20","k":"v","a":0,"i":380},{"n":"ORGOSOLO","la":40.2053,"lo":9.3544,"d":"2019-07-23","k":"v","a":0,"i":380},{"n":"AGGIUS","la":40.9299,"lo":9.0652,"d":"2019-07-24","k":"v","a":0,"i":380},{"n":"VALLEDORIA","la":40.9287,"lo":8.8232,"d":"2019-07-25","k":"v","a":0,"i":380},{"n":"MAYENNE","la":48.3034,"lo":-0.6138,"d":"2019-09-29","k":"v","a":0,"i":250},{"n":"GOZO","la":36.0444,"lo":14.2512,"d":"2019-12-01","k":"v","a":0,"i":470},{"n":"LA VALLETTA","la":35.9,"lo":14.51,"d":"2019-12-01","k":"v","a":0,"i":470},{"n":"PADOLA","la":46.6,"lo":12.5,"d":"2020-07-22","k":"v","a":0,"i":380},{"n":"MARGALEF","la":41.285,"lo":0.7533,"d":"2020-09-15","k":"n","a":0,"i":724},{"n":"FAYÓN","la":41.2385,"lo":0.333,"d":"2020-10-17","k":"n","a":0,"i":724},{"n":"TORTOSA","la":40.8125,"lo":0.5216,"d":"2020-11-17","k":"n","a":0,"i":724},{"n":"NAVAJAS","la":39.8833,"lo":-0.5,"d":"2021-01-18","k":"n","a":0,"i":724},{"n":"ULLDECONA","la":40.5973,"lo":0.4472,"d":"2021-04-22","k":"n","a":0,"i":724},{"n":"CHATEAU DE SALSES","la":42.8333,"lo":2.9167,"d":"2022-12-17","k":"v","a":0,"i":250},{"n":"VARAZZO","la":44.3589,"lo":8.5783,"d":"2022-12-18","k":"v","a":0,"i":380},{"n":"BASSANO","la":45.7667,"lo":11.7333,"d":"2022-12-27","k":"v","a":0,"i":380},{"n":"BEZIERS","la":43.3412,"lo":3.214,"d":"2022-12-30","k":"v","a":0,"i":250},{"n":"DEBRECEN","la":47.53,"lo":21.63,"d":"2024-02-14","k":"v","a":0,"i":348},{"n":"ORADEA","la":47.07,"lo":21.92,"d":"2024-02-18","k":"v","a":0,"i":642},{"n":"BUDAPEST","la":47.4984,"lo":19.0404,"d":"2024-02-23","k":"v","a":0,"i":348},{"n":"ESPÉRAZA","la":42.93,"lo":2.22,"d":"2024-12-05","k":"v","a":0,"i":250},{"n":"CASTELNOU","la":42.6,"lo":2.6333,"d":"2024-12-14","k":"v","a":0,"i":250},{"n":"EUS","la":42.65,"lo":2.4833,"d":"2024-12-14","k":"v","a":0,"i":250},{"n":"PERPIGNAN","la":42.7,"lo":2.9,"d":"2024-12-14","k":"v","a":0,"i":250},{"n":"UTRECHT","la":52.0908,"lo":5.1222,"d":"2025-04-21","k":"v","a":0,"i":528},{"n":"ZWOLLE","la":52.52,"lo":6.1,"d":"2025-04-21","k":"v","a":0,"i":528},{"n":"LIMOUX","la":43.0549,"lo":2.2217,"d":"2025-05-04","k":"v","a":0,"i":250},{"n":"QUILLAN","la":42.8758,"lo":2.1818,"d":"2025-05-04","k":"v","a":0,"i":250},{"n":"PANTELLERIA","la":36.84,"lo":11.94,"d":"2025-05-17","k":"v","a":0,"i":380},{"n":"GENT","la":51.05,"lo":3.72,"d":"2026-02-08","k":"v","a":0,"i":56},{"n":"KAUNAS","la":54.9,"lo":23.9,"d":"2026-05-04","k":"v","a":0,"i":440},{"n":"JELGAVA","la":56.65,"lo":23.7128,"d":"2026-05-09","k":"v","a":0,"i":428},{"n":"KEDAINIAI","la":55.2883,"lo":23.9742,"d":"2026-05-09","k":"v","a":0,"i":440},{"n":"KRYSIU KALNAS","la":56.015,"lo":23.4161,"d":"2026-05-09","k":"v","a":0,"i":440},{"n":"RIGA","la":56.95,"lo":24.11,"d":"2026-05-09","k":"v","a":0,"i":428},{"n":"BAUSKAS","la":56.4086,"lo":24.1936,"d":"2026-05-10","k":"v","a":0,"i":428},{"n":"TRAKAI","la":54.6333,"lo":24.9333,"d":"2026-05-10","k":"v","a":0,"i":440},{"n":"UZAPIS","la":54.68,"lo":25.3,"d":"2026-05-10","k":"v","a":0,"i":440},{"n":"VILNIUS","la":54.6892,"lo":25.2798,"d":"2026-05-10","k":"v","a":0,"i":440},{"n":"BORGGOMANERO","la":45.6989,"lo":8.4637,"d":"2026-07-27","k":"v","a":0,"i":380},{"n":"CALATAYUD","la":41.3535,"lo":-1.6432,"d":"2026-08-03","k":"n","a":0,"i":724},{"n":"SALAMANCA","la":40.4297,"lo":-3.6797,"d":"2026-08-13","k":"n","a":0,"i":724},{"n":"VALLADOLID","la":41.6554,"lo":-4.7235,"d":"2026-08-22","k":"n","a":0,"i":724},{"n":"SORIA","la":41.764,"lo":-2.4688,"d":"2026-09-20","k":"n","a":0,"i":724},{"n":"TUDELA DEL DUERO","la":41.5897,"lo":-4.5806,"d":"2026-09-30","k":"n","a":0,"i":724}];
     const MAP_CITY_NAMES = new Set(MAP_CITIES.map(c => c.n));
     function coordsForCity(name) {
         return CITY_COORDS[name] || null;
@@ -2172,12 +2657,63 @@
         return xy ? { xy, isCity: !!cityCoord } : null;
     }
 
-    function updateEventsMap(index) {
-        const events = effectiveEvents();
-        const upTo = events.slice(0, index + 1);
-        const current = events[index];
+    // Passi dell'animazione = tutte le date in cui succede qualcosa: una tratta di viaggio oppure la comparsa di una città.
+    // Così le città dei periodi lunghi (anche nazionali) si accendono una dopo l'altra, non tutte insieme.
+    function buildEvSteps() {
+        const today = todayStr();
+        const set = new Set(effectiveEvents().map(e => e.date));
+        MAP_CITIES.forEach(c => { if (c.d <= today) set.add(c.d); });
+        evSteps = [...set].sort().map(d => ({ date: d }));
+        evStepDays = evSteps.map(s => evDayOf(s.date));
+    }
+    function evDayOf(d) { return evSteps.length ? Math.round((new Date(d) - new Date(evSteps[0].date)) / 86400000) : 0; }
+    function evTotalDays() { return evSteps.length ? evStepDays[evStepDays.length - 1] : 0; }
+    function evDateOfDay(day) { return new Date(new Date(evSteps[0].date).getTime() + Math.round(day) * 86400000).toISOString().slice(0, 10); }
+    function evIndexForDay(day) {
+        let lo = 0, hi = evStepDays.length - 1;
+        while (lo < hi) { const m = (lo + hi + 1) >> 1; if (evStepDays[m] <= day) lo = m; else hi = m - 1; }
+        return lo;
+    }
+    // Il cursore è per passi in "sequenza", per giorni in "cronologico"
+    function evSyncSlider() {
+        const slider = document.getElementById('eventsSlider');
+        if (!evSteps.length) return;
+        if (evMode === 'chrono') { slider.max = evTotalDays(); slider.value = evStepDays[evCurIdx]; }
+        else { slider.max = evSteps.length - 1; slider.value = evCurIdx; }
+        const sp = document.getElementById('evSpeedWrap'); if (sp) sp.style.display = evMode === 'chrono' ? '' : 'none';
+    }
+    const EV_COLORS = { v: '#F5A623', n: '#EFC76D', s: '#66788F' };
+
+    // categorie dei paesi toccati dagli eventi (per la legenda a colori)
+    function evCategoriesPresent() {
+        const cats = new Set();
+        effectiveEvents().forEach(e => (e.countries || []).forEach(c => cats.add(categoryOf(displayCountryName(c.name)))));
+        return MAP_CAT_ORDER.filter(k => cats.has(k));
+    }
+    let evLegendKey = '';
+    function renderEvLegend() {
+        const el = document.getElementById('evCatLegend');
+        if (!el) return;
+        const items = evShowCountries ? evCategoriesPresent() : [];
+        const key = items.join(',');
+        if (key === evLegendKey) return;
+        evLegendKey = key;
+        el.innerHTML = items.map(k => `<span><span class="dot" style="background:${MAP_CAT_COLORS[k]}; border-radius:3px;"></span>${CATEGORY_LABELS[k]}</span>`).join('');
+    }
+
+    function updateEventsMap(index, opts) {
+        renderEvLegend();
+        if (!evSteps.length) return;
+        opts = opts || {};
+        index = Math.max(0, Math.min(index, evSteps.length - 1));
+        evCurIdx = index;
+        const date = evSteps[index].date;
+        const labelDate = opts.labelDate || date;
+        const from = opts.from !== undefined ? opts.from : (index > 0 ? evSteps[index - 1].date : '');
+        const events = effectiveEvents().filter(e => e.date <= date);
+        const current = events.length ? events[events.length - 1] : null;
         const knownNames = new Set();
-        upTo.forEach(e => (e.countries || []).forEach(c => knownNames.add(c.name)));
+        events.forEach(e => (e.countries || []).forEach(c => knownNames.add(c.name)));
 
         // Colorazione dei paesi: opzionale
         d3.select('#evCountriesLayer').selectAll('path')
@@ -2187,14 +2723,13 @@
                 return (name && knownNames.has(name.toUpperCase())) ? (evColorForName(name) || 'var(--panel-raised)') : 'var(--panel-raised)';
             });
 
-        // Puntini: tutte le città citate nel file la cui prima comparsa è già avvenuta (+ eventuali destinazioni modificate a mano)
-        const upToDate = current ? current.date : '9999-12-31';
-        const shown = MAP_CITIES.filter(c => c._x != null && c.d <= upToDate);
+        // Puntini: tutte le città citate nel file la cui data è già arrivata (+ destinazioni inserite a mano non presenti nel file)
+        const shown = MAP_CITIES.filter(c => c._x != null && c.d <= date);
         const extra = [];
-        upTo.forEach(e => {
-            if (!e.dest || MAP_CITY_NAMES.has(normCity(e.dest))) return;
+        events.forEach(e => {
+            if (!e.dest || e.dest === 'ITALIA' || MAP_CITY_NAMES.has(normCity(e.dest))) return;
             const m = eventMarkerXY(e);
-            if (m) extra.push({ n: e.dest, k: 'v', a: 1, _x: m.xy[0], _y: m.xy[1] });
+            if (m) extra.push({ n: e.dest, k: 'v', a: 1, d: e.date, _x: m.xy[0], _y: m.xy[1] });
         });
         const all = shown.concat(extra);
         const key = all.length + '|' + (all.length ? all[all.length - 1].n : '');
@@ -2204,69 +2739,230 @@
             layer.selectAll('*').remove();
             const g = layer.selectAll('g').data(all).enter().append('g').attr('class', 'evc')
                 .attr('transform', d => `translate(${d._x},${d._y})`);
-            const color = d => d.k === 'n' ? '#43C6AC' : (d.k === 's' ? '#7E90A8' : '#F5A623');
-            g.append('circle').attr('fill', color).attr('opacity', d => d.a ? 0.35 : 0.9);
-            g.append('text').attr('x', 3).attr('y', 1).attr('fill', '#E9EEF4').attr('pointer-events', 'none')
-                .text(d => titleCase(d.n));
-            g.append('title').text(d => titleCase(d.n) + (d.a ? ' (posizione approssimata)' : ''));
+            g.append('circle').attr('fill', d => EV_COLORS[d.k] || EV_COLORS.v).attr('opacity', d => d.a ? 0.4 : 0.92);
+            g.append('text').attr('x', 3).attr('y', 1).attr('fill', '#E9EEF4').attr('pointer-events', 'none').text(d => cityLabel(d.n));
+            g.append('title').text(d => cityLabel(d.n) + (d.a ? ' (posizione approssimata)' : ''));
             evRescaleDots();
         }
         const cnt = document.getElementById('evCityCount');
         if (cnt) cnt.textContent = `${all.length} città sulla mappa su ${MAP_CITIES.length}`;
 
-        document.getElementById('eventsSlider').value = index;
-        if (current) {
-            document.getElementById('eventsLabel').textContent = `${formatDate(current.date)} (${index + 1}/${events.length})`;
-            document.getElementById('eventsCurrentNote').textContent = `${current.route}${current.altri ? ' · ' + current.altri : ''}${current.come ? ' · ' + current.come : ''}`;
-            // "esplosione": lampo pulsante sulla città (o paese, se la città non è mappata) dell'evento corrente
-            const layer = d3.select('#evPulseLayer');
-            layer.selectAll('*').remove();
-            const m = eventMarkerXY(current);
-            if (m) {
-                const ring = layer.append('circle')
-                    .attr('cx', m.xy[0]).attr('cy', m.xy[1]).attr('r', 4 / Math.sqrt(evZoomK))
-                    .attr('fill', 'none').attr('stroke', '#F5A623').attr('stroke-width', 2.5 / Math.sqrt(evZoomK));
-                ring.transition().duration(900).attr('r', 26 / Math.sqrt(evZoomK)).style('opacity', 0).remove();
-            }
-        } else {
-            document.getElementById('eventsLabel').textContent = '—';
-            document.getElementById('eventsCurrentNote').textContent = '';
-        }
+        document.getElementById('eventsSlider').value = evMode === 'chrono' ? evDayOf(labelDate) : index;
+        document.getElementById('eventsLabel').textContent = evMode === 'chrono' ? formatDate(labelDate) : `${formatDate(date)} (${index + 1}/${evSteps.length})`;
+        document.getElementById('eventsCurrentNote').textContent = current
+            ? `${formatDate(current.date)} · ${current.route}${current.altri ? ' · ' + current.altri : ''}${current.come ? ' · ' + current.come : ''}` : '';
+
+        // "esplosioni": un lampo su ogni città che compare in questo passo (e sull'evento del giorno)
+        const layer = d3.select('#evPulseLayer');
+        layer.selectAll('*').remove();
+        const fresh = shown.filter(c => c.d > from && c.d <= date).slice(0, 24).map(c => [c._x, c._y]);
+        if (current && current.date > from && current.date <= date) { const m = eventMarkerXY(current); if (m) fresh.push(m.xy); }
+        const kz = Math.sqrt(evZoomK);
+        fresh.forEach(([x, y]) => {
+            layer.append('circle').attr('cx', x).attr('cy', y).attr('r', 3 / kz)
+                .attr('fill', 'none').attr('stroke', '#F5A623').attr('stroke-width', 2.2 / kz)
+                .transition().duration(900).attr('r', 22 / kz).style('opacity', 0).remove();
+        });
     }
 
-    // Velocità sincronizzata al tempo reale: il ritardo prima del prossimo evento è proporzionale
+    // Velocità sincronizzata al tempo reale: il ritardo prima del passo successivo è proporzionale
     // ai giorni di calendario realmente trascorsi, con un minimo e un massimo per restare guardabile.
     const EV_MS_PER_DAY = 3;
     const EV_MIN_STEP_MS = 90;
     const EV_MAX_STEP_MS = 1800;
+    function evStepWeight(i) {
+        if (i <= 0) return EV_MIN_STEP_MS;
+        const gap = Math.max(0, (new Date(evSteps[i].date) - new Date(evSteps[i - 1].date)) / 86400000);
+        return Math.min(EV_MAX_STEP_MS, Math.max(EV_MIN_STEP_MS, gap * EV_MS_PER_DAY));
+    }
 
     function startEventsPlay() {
+        if (evExporting) return;
         evPlaying = true;
         document.getElementById('eventsPlayBtn').textContent = '⏸ Pausa';
         const slider = document.getElementById('eventsSlider');
-        const events = effectiveEvents();
+        if (+slider.value >= +slider.max) { evDotsKey = ''; updateEventsMap(0); evSyncSlider(); }
+
+        if (evMode === 'chrono') {
+            // tempo reale proporzionale: ogni anno di vita dura evChronoSpeed secondi, anche quando non succede niente
+            const msPerDay = evChronoSpeed * 1000 / 365.25;
+            const startDay = +slider.value, t0 = performance.now();
+            let lastIdx = evIndexForDay(startDay);
+            const tick = (now) => {
+                if (!evPlaying) return;
+                const day = Math.min(evTotalDays(), startDay + (now - t0) / msPerDay);
+                const idx = evIndexForDay(day);
+                const labelDate = evDateOfDay(day);
+                if (idx !== lastIdx) { updateEventsMap(idx, { from: evSteps[lastIdx].date, labelDate }); lastIdx = idx; }
+                else { slider.value = day; document.getElementById('eventsLabel').textContent = formatDate(labelDate); }
+                if (day >= evTotalDays()) { stopEventsPlay(); return; }
+                evRaf = requestAnimationFrame(tick);
+            };
+            evRaf = requestAnimationFrame(tick);
+            return;
+        }
 
         function step() {
             if (!evPlaying) return;
             const i = +slider.value + 1;
             if (i > +slider.max) { stopEventsPlay(); return; }
             updateEventsMap(i);
-            const prev = events[i - 1], cur = events[i];
-            let delay = EV_MIN_STEP_MS;
-            if (prev && cur) {
-                const gapDays = Math.max(0, (new Date(cur.date) - new Date(prev.date)) / 86400000);
-                delay = Math.min(EV_MAX_STEP_MS, Math.max(EV_MIN_STEP_MS, gapDays * EV_MS_PER_DAY));
-            }
-            evInterval = setTimeout(step, delay);
+            evInterval = setTimeout(step, evStepWeight(i));
         }
         step();
     }
     function stopEventsPlay() {
         evPlaying = false;
-        document.getElementById('eventsPlayBtn').textContent = '▶ Play';
+        const b = document.getElementById('eventsPlayBtn');
+        if (b) b.textContent = '▶ Play';
         if (evInterval) clearTimeout(evInterval);
-        evInterval = null;
+        if (evRaf) cancelAnimationFrame(evRaf);
+        evInterval = null; evRaf = null;
     }
+
+    /* ================= ESPORTAZIONE VIDEO DELL'ANIMAZIONE ================= */
+    // Ridisegna l'animazione su un canvas 1280x720 (stessi colori, stessa vista/zoom di quella sullo schermo)
+    // e la registra con MediaRecorder: il file scaricato è un video WebM (o MP4 dove il browser lo supporta).
+    async function exportEventsVideo(totalSec) {
+        if (evExporting) return;
+        const features = await loadWorldAtlas();
+        if (!evSteps.length) buildEvSteps();
+        const mimes = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'];
+        const mime = (window.MediaRecorder && mimes.find(m => MediaRecorder.isTypeSupported(m))) || null;
+        if (!mime) { alert('Questo browser non supporta la registrazione video dal canvas. Prova con Chrome, Edge o Firefox da computer.'); return; }
+
+        stopEventsPlay();
+        evExporting = true; evExportCancel = false;
+        const W = 1280, H = 720;
+        const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+        const ctx = cv.getContext('2d');
+        const projection = d3.geoNaturalEarth1().fitSize([960, 500], features);
+        const gp = d3.geoPath(projection);
+        const cPaths = features.features.map(f => ({ iso: String(f.id), p: new Path2D(gp(f)) }));
+        const tr = (window.__evSvg && d3.zoomTransform(window.__evSvg.node())) || { k: 1, x: 0, y: 0 };
+        // zona di mondo attualmente visibile sullo schermo, adattata al formato 16:9 del video
+        const vbx = document.getElementById('eventsMap').viewBox.baseVal;
+        const vw = (vbx && vbx.width) || 960, vh = (vbx && vbx.height) || 500;
+        const rx0 = -tr.x / tr.k, ry0 = -tr.y / tr.k, rw = vw / tr.k, rh = vh / tr.k;
+        const ss = Math.min(W / rw, H / rh);
+        const kEq = ss / (W / 960);
+        const legendItems = evShowCountries ? evCategoriesPresent() : [];
+
+        // tempi: stessi pesi della riproduzione, scalati alla durata scelta (+ 2 secondi di pausa finale)
+        const play = totalSec * 1000, hold = 2000;
+        let start = [];
+        if (evMode === 'chrono') {
+            // proporzionale alle date reali (stessa logica del modo cronologico)
+            const tot = Math.max(1, evTotalDays());
+            start = evStepDays.map(d => d / tot * play);
+        } else {
+            const w = evSteps.map((_, i) => evStepWeight(i));
+            const sumW = w.reduce((a, b) => a + b, 0);
+            let acc = 0;
+            w.forEach(x => { start.push(acc); acc += x / sumW * play; });
+        }
+        const startByDate = {}; evSteps.forEach((s, i) => { startByDate[s.date] = start[i]; });
+        const events = effectiveEvents();
+        const cities = MAP_CITIES.filter(c => c._x != null).slice().sort((a, b) => a.d.localeCompare(b.d));
+        const stepOf = t => { let lo = 0, hi = start.length - 1; while (lo < hi) { const m = (lo + hi + 1) >> 1; if (start[m] <= t) lo = m; else hi = m - 1; } return lo; };
+        const kz = Math.sqrt(kEq);
+        const rr = (x, y, ww, hh, r) => { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + ww, y, x + ww, y + hh, r); ctx.arcTo(x + ww, y + hh, x, y + hh, r); ctx.arcTo(x, y + hh, x, y, r); ctx.arcTo(x, y, x + ww, y, r); ctx.closePath(); };
+
+        function draw(t) {
+            const idx = stepOf(Math.min(t, play)); const date = evSteps[idx].date;
+            const labelDate = evMode === 'chrono' ? evDateOfDay(Math.min(1, Math.max(0, t / play)) * evTotalDays()) : date;
+            const known = new Set(); let current = null;
+            events.forEach(e => { if (e.date <= date) { current = e; (e.countries || []).forEach(c => known.add(c.name)); } });
+            ctx.fillStyle = '#0B1420'; ctx.fillRect(0, 0, W, H);
+            ctx.save();
+            ctx.translate(W / 2 - ss * (rx0 + rw / 2), H / 2 - ss * (ry0 + rh / 2)); ctx.scale(ss, ss);
+            ctx.lineWidth = 0.5 / kEq; ctx.strokeStyle = '#0B1420';
+            cPaths.forEach(c => {
+                const name = evIsoToName[c.iso];
+                let fill = '#16283D';
+                if (evShowCountries && name && known.has(name.toUpperCase())) fill = evColorForName(name) || fill;
+                ctx.fillStyle = fill; ctx.fill(c.p); ctx.stroke(c.p);
+            });
+            const vis = cities.filter(c => c.d <= date);
+            vis.forEach(c => {
+                ctx.globalAlpha = c.a ? 0.45 : 0.92; ctx.fillStyle = EV_COLORS[c.k] || EV_COLORS.v;
+                ctx.beginPath(); ctx.arc(c._x, c._y, (c.k === 'n' ? 1.7 : 2.4) / kz, 0, 6.2832); ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+            if (kEq >= 3) {
+                ctx.fillStyle = '#E9EEF4'; ctx.font = `${8 / kEq}px sans-serif`;
+                vis.forEach(c => ctx.fillText(cityLabel(c.n), c._x + 3 / kEq, c._y + 1 / kEq));
+            }
+            ctx.strokeStyle = '#F5A623'; ctx.lineWidth = 2.2 / kz;
+            let np = 0;
+            for (const c of vis) {
+                const a = (t - (startByDate[c.d] === undefined ? -1e9 : startByDate[c.d])) / 900;
+                if (a >= 0 && a < 1 && np++ < 40) { ctx.globalAlpha = 1 - a; ctx.beginPath(); ctx.arc(c._x, c._y, (3 + 19 * a) / kz, 0, 6.2832); ctx.stroke(); }
+            }
+            if (current && startByDate[current.date] !== undefined) {
+                const a = (t - startByDate[current.date]) / 900;
+                const m = a >= 0 && a < 1 ? eventMarkerXY(current) : null;
+                if (m) { ctx.globalAlpha = 1 - a; ctx.beginPath(); ctx.arc(m.xy[0], m.xy[1], (3 + 19 * a) / kz, 0, 6.2832); ctx.stroke(); }
+            }
+            ctx.globalAlpha = 1;
+            ctx.restore();
+            // legenda categorie
+            if (legendItems.length) {
+                ctx.fillStyle = 'rgba(11,20,32,0.72)'; rr(24, 24, 210, 14 + legendItems.length * 24, 12); ctx.fill();
+                ctx.font = '600 14px Manrope, sans-serif';
+                legendItems.forEach((k, i) => {
+                    ctx.fillStyle = MAP_CAT_COLORS[k]; ctx.fillRect(38, 36 + i * 24, 14, 14);
+                    ctx.fillStyle = '#E9EEF4'; ctx.fillText(CATEGORY_LABELS[k], 60, 48 + i * 24);
+                });
+            }
+            // scritte
+            ctx.fillStyle = 'rgba(11,20,32,0.72)'; rr(24, H - 132, 560, 108, 14); ctx.fill();
+            ctx.fillStyle = '#F5A623'; ctx.font = '700 44px "JetBrains Mono", monospace'; ctx.fillText(formatDate(labelDate), 44, H - 76);
+            ctx.fillStyle = '#E9EEF4'; ctx.font = '600 20px Manrope, sans-serif';
+            ctx.fillText(`${vis.length} città · ${known.size} paesi`, 44, H - 46);
+            if (current) {
+                ctx.fillStyle = '#7E90A8'; ctx.font = '500 15px Manrope, sans-serif';
+                const txt = `${current.route}${current.come ? ' · ' + current.come : ''}`;
+                ctx.fillText(txt.length > 62 ? txt.slice(0, 61) + '…' : txt, 44, H - 30);
+            }
+            ctx.fillStyle = 'rgba(233,238,244,0.55)'; ctx.font = '600 16px Manrope, sans-serif'; ctx.fillText('Travel Log', W - 110, 32);
+        }
+
+        const stream = cv.captureStream(30);
+        const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 6000000 });
+        const chunks = [];
+        rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+        const done = new Promise(res => { rec.onstop = res; });
+        const btn = document.getElementById('eventsExportBtn');
+        const label = btn.textContent;
+        rec.start(250);
+        const t0 = performance.now();
+        await new Promise(resolve => {
+            function frame(now) {
+                const t = now - t0;
+                if (evExportCancel || t >= play + hold) { resolve(); return; }
+                draw(t);
+                btn.textContent = `Annulla (${Math.min(99, Math.round(t / (play + hold) * 100))}%)`;
+                requestAnimationFrame(frame);
+            }
+            requestAnimationFrame(frame);
+        });
+        if (!evExportCancel) draw(play);
+        rec.stop();
+        await done;
+        stream.getTracks().forEach(tk => tk.stop());
+        evExporting = false;
+        btn.textContent = label;
+        if (evExportCancel || !chunks.length) return;
+        const blob = new Blob(chunks, { type: mime.split(';')[0] });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'viaggi-nel-tempo.' + (mime.indexOf('mp4') >= 0 ? 'mp4' : 'webm');
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+        return blob;
+    }
+    window.exportEventsVideo = exportEventsVideo;
 
     (async function init() {
         await loadSnapshotIfEmpty();
@@ -2275,6 +2971,7 @@
         document.getElementById('avgFrom').value = BIRTHDATE.slice(0, 10);
         document.getElementById('avgTo').value = todayStr();
         renderAll();
+        setTimeout(initNoteClamps, 120);
     })();
 </script>
 </body>

@@ -2966,6 +2966,19 @@
         const ringK = portrait ? 1 : 0.7;      // video orizzontale (PC): anelli più piccoli; il verticale resta com'è
         const rr = (x, y, ww, hh, r) => { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + ww, y, x + ww, y + hh, r); ctx.arcTo(x + ww, y + hh, x, y + hh, r); ctx.arcTo(x, y + hh, x, y, r); ctx.arcTo(x, y, x + ww, y, r); ctx.closePath(); };
 
+        // Pannello in basso a sinistra: data, conteggi, tratta e legenda, largo solo quanto serve.
+        // Orizzontale: legenda accanto ai testi; verticale: legenda sotto ai testi.
+        const F_DATE = '700 44px "JetBrains Mono", monospace', F_CNT = '600 20px Manrope, sans-serif', F_ROUTE = '500 15px Manrope, sans-serif', F_LEG = '600 14px Manrope, sans-serif';
+        const routeText = e => { const t = `${e.route}${e.come ? ' · ' + e.come : ''}`; return t.length > 27 ? t.slice(0, 26) + '…' : t; };
+        const mw = (font, txt) => { ctx.font = font; return ctx.measureText(txt).width; };
+        const wText = Math.ceil(Math.max(mw(F_DATE, '00/00/0000'), mw(F_CNT, '000 città · 00 paesi'), ...events.map(e => mw(F_ROUTE, routeText(e)))));
+        const wLeg = legendItems.length ? Math.ceil(Math.max(...legendItems.map(k => mw(F_LEG, CATEGORY_LABELS[k])))) + 22 : 0;
+        const PAD = 18, GAP = 26, TEXT_H = 88, LEG_ROW = 21;
+        const legH = legendItems.length * LEG_ROW;
+        const sideLegend = !portrait && wLeg > 0;
+        const panelW = PAD * 2 + (sideLegend ? wText + GAP + wLeg : Math.max(wText, wLeg));
+        const panelH = PAD * 2 + (sideLegend ? Math.max(TEXT_H, legH) : TEXT_H + (legH ? 12 + legH : 0));
+
         function draw(t) {
             const idx = stepOf(Math.min(t, play)); const date = evSteps[idx].date;
             const labelDate = evMode === 'chrono' ? evDateOfDay(Math.min(1, Math.max(0, t / play)) * evTotalDays()) : date;
@@ -3008,24 +3021,21 @@
             }
             ctx.globalAlpha = 1;
             ctx.restore();
-            // legenda categorie
+            // pannello con data, conteggi, tratta e legenda
+            const px = 24, py = H - 24 - panelH, tx = px + PAD, ty = py + PAD + 34;
+            ctx.fillStyle = 'rgba(11,20,32,0.72)'; rr(px, py, panelW, panelH, 14); ctx.fill();
+            ctx.fillStyle = '#F5A623'; ctx.font = F_DATE; ctx.fillText(formatDate(labelDate), tx, ty);
+            ctx.fillStyle = '#E9EEF4'; ctx.font = F_CNT; ctx.fillText(`${vis.length} città · ${nCountries} paesi`, tx, ty + 30);
+            if (current) { ctx.fillStyle = '#7E90A8'; ctx.font = F_ROUTE; ctx.fillText(routeText(current), tx, ty + 50); }
             if (legendItems.length) {
-                ctx.fillStyle = 'rgba(11,20,32,0.72)'; rr(24, 24, 210, 14 + legendItems.length * 24, 12); ctx.fill();
-                ctx.font = '600 14px Manrope, sans-serif';
+                const lx = sideLegend ? tx + wText + GAP : tx;
+                const ly0 = sideLegend ? py + PAD + Math.max(0, (Math.max(TEXT_H, legH) - legH) / 2) : py + PAD + TEXT_H + 12;
+                ctx.font = F_LEG;
                 legendItems.forEach((k, i) => {
-                    ctx.fillStyle = MAP_CAT_COLORS[k]; ctx.fillRect(38, 36 + i * 24, 14, 14);
-                    ctx.fillStyle = '#E9EEF4'; ctx.fillText(CATEGORY_LABELS[k], 60, 48 + i * 24);
+                    const y = ly0 + i * LEG_ROW;
+                    ctx.fillStyle = MAP_CAT_COLORS[k]; ctx.fillRect(lx, y + 3, 14, 14);
+                    ctx.fillStyle = '#E9EEF4'; ctx.fillText(CATEGORY_LABELS[k], lx + 22, y + 15);
                 });
-            }
-            // scritte
-            ctx.fillStyle = 'rgba(11,20,32,0.72)'; rr(24, H - 132, 560, 108, 14); ctx.fill();
-            ctx.fillStyle = '#F5A623'; ctx.font = '700 44px "JetBrains Mono", monospace'; ctx.fillText(formatDate(labelDate), 44, H - 76);
-            ctx.fillStyle = '#E9EEF4'; ctx.font = '600 20px Manrope, sans-serif';
-            ctx.fillText(`${vis.length} città · ${nCountries} paesi`, 44, H - 46);
-            if (current) {
-                ctx.fillStyle = '#7E90A8'; ctx.font = '500 15px Manrope, sans-serif';
-                const txt = `${current.route}${current.come ? ' · ' + current.come : ''}`;
-                ctx.fillText(txt.length > 62 ? txt.slice(0, 61) + '…' : txt, 44, H - 30);
             }
             ctx.fillStyle = 'rgba(233,238,244,0.55)'; ctx.font = '600 16px Manrope, sans-serif'; ctx.fillText('Travel Log', W - 110, 32);
         }

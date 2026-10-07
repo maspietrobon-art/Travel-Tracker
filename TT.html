@@ -504,7 +504,8 @@
                 <select id="eventsExportSec" title="Durata del video" style="background:var(--bg); border:1px solid var(--line); color:var(--text); border-radius:8px; padding:7px 8px; font-family:inherit;">
                     <option value="30">video 30 s</option><option value="60" selected>video 60 s</option><option value="90">video 90 s</option>
                 </select>
-                <button class="del-btn" id="eventsExportBtn" style="padding:7px 14px;" title="Registra l'animazione (vista e zoom attuali) e scarica il video">⬇ Esporta video</button>
+                <button class="del-btn" id="eventsExportBtn" style="padding:7px 14px;" title="Registra l'animazione (vista e zoom attuali) e scarica il video: MP4 se il browser lo permette, altrimenti WebM">⬇ Esporta video</button>
+                <span id="eventsExportStatus" style="flex-basis:100%; text-align:right; font-size:0.75em; color:var(--muted);"></span>
             </div>
             <svg id="eventsMap" viewBox="0 0 960 500"></svg>
             <div class="tl-controls">
@@ -1799,6 +1800,7 @@
     }
 
     function setCategory(name, value) {
+        evDirty = true;              // la mappa nel tempo va ricostruita con la nuova categoria
         categoryOverrides[name] = value;
         saveCategories();
         renderDistribution();
@@ -2358,7 +2360,7 @@
     /* ================= NOTE LUNGHE: 2 righe + «…», toccando si leggono per intero ================= */
     function initNoteClamps() {
         document.querySelectorAll('.section-note, .quick-add-hint').forEach(el => {
-            if (['importStatus', 'evFilterInfo', 'eventsCurrentNote'].includes(el.id) || el.classList.contains('open')) return;
+            if (['importStatus', 'evFilterInfo', 'eventsCurrentNote', 'eventsExportStatus'].includes(el.id) || el.classList.contains('open')) return;
             if (el.offsetParent === null) return;           // scheda nascosta: la si misura quando diventa visibile
             el.classList.add('clamp');
             if (el.scrollHeight > el.clientHeight + 1) { el.dataset.clamped = '1'; el.title = 'Tocca per leggere tutto'; }
@@ -2550,6 +2552,7 @@
 
         bindEventsMapControls();
         stopEventsPlay();
+        buildCountryTimelines();
         buildEvSteps();
         const svg = d3.select('#eventsMap');
         svg.selectAll('*').remove();
@@ -2663,10 +2666,63 @@
 
     // Passi dell'animazione = tutte le date in cui succede qualcosa: una tratta di viaggio oppure la comparsa di una città.
     // Così le città dei periodi lunghi (anche nazionali) si accendono una dopo l'altra, non tutte insieme.
+    // ===== Categoria dei paesi nel tempo =====
+    // Ogni paese parte dal livello più basso con cui compare nel file e sale strada facendo:
+    // visto dal confine → attraversato → visitato poco → visitato → vissuto (non scende mai).
+    // L'ultimo livello coincide sempre con la categoria attuale del paese (modificabile nell'elenco paesi).
+    const LIVED_FROM = { 'Italia': '1977-10-07', 'Spagna': '1999-09-01', 'Marocco': '2003-11-02', 'Sierra Leone': '2011-04-29', 'Brasile': '2008-05-17' };
+    const LEVEL_RANK = { confine: 0, attraversato: 1, visitato_poco: 2, visitato: 3, vissuto: 4, lavorato: 4, visitato_lavorato: 4 };
+    const TAG_LEVEL = { lontano: 'confine', attraversato: 'attraversato', visitato_poco: 'visitato_poco', visitato: 'visitato' };
+    const COUNTRY_ALIAS = { 'MONTECARLO': 'MONACO', 'GAZA': 'PALESTINA (CISGIORDANIA)' };
+    // Informazioni presenti nel foglio "conteggio viaggi" ma senza tratta corrispondente nell'elenco tratte
+    // (es. Monaco visto da lontano già nel dicembre 2001). Servono solo a anticipare/completare le categorie nel tempo.
+    const LEVEL_HINTS = [{"c": "MONACO", "k": "lontano", "d": "2001-12-25"}, {"c": "SPAGNA", "k": "visitato", "d": "2004-12-01"}, {"c": "FRANCIA", "k": "attraversato", "d": "2006-09-13"}, {"c": "TURCHIA", "k": "attraversato", "d": "2018-03-24"}, {"c": "ISRAELE", "k": "visitato", "d": "2018-11-03"}];
+    let evCountryTimeline = {};
+    function evCountryKey(upper) { return displayCountryName(COUNTRY_ALIAS[upper] || upper); }
+    function buildCountryTimelines() {
+        const first = {};
+        const note = (name, lvl, d) => { const m = first[name] = first[name] || {}; if (!m[lvl] || d < m[lvl]) m[lvl] = d; };
+        effectiveEvents().forEach(e => (e.countries || []).forEach(c => { const lvl = TAG_LEVEL[c.tag]; if (lvl) note(evCountryKey(c.name), lvl, e.date); }));
+        LEVEL_HINTS.forEach(x => note(evCountryKey(x.c), TAG_LEVEL[x.k], x.d));
+        extraTrips.forEach(t => note(t.country, 'visitato', t.startDate));
+        COUNTRIES.forEach(c => {              // paesi dove hai vissuto o lavorato: dal momento in cui ci vivi davvero
+            const cat = categoryOf(c.name);
+            if (LEVEL_RANK[cat] === 4) {
+                const f = first[c.name] ? Object.values(first[c.name]).sort()[0] : null;
+                const d = LIVED_FROM[c.name] || f;
+                if (d) note(c.name, cat, d);
+            }
+        });
+        const out = {};
+        Object.entries(first).forEach(([name, m]) => {
+            const items = Object.entries(m).map(([k, d]) => ({ k, d })).sort((a, b) => a.d.localeCompare(b.d) || LEVEL_RANK[a.k] - LEVEL_RANK[b.k]);
+            const tl = []; let best = -1;
+            items.forEach(it => { const r = LEVEL_RANK[it.k]; if (r > best) { best = r; tl.push(it); } });
+            const final = categoryOf(name);
+            if (tl.length && LEVEL_RANK[final] !== undefined) tl[tl.length - 1] = { k: final, d: tl[tl.length - 1].d };
+            out[name] = tl;
+        });
+        evCountryTimeline = out;
+    }
+    function evCountryLevelAt(name, date) {
+        const tl = evCountryTimeline[name]; if (!tl) return null;
+        let lvl = null;
+        for (const it of tl) { if (it.d <= date) lvl = it.k; else break; }
+        return lvl;
+    }
+
+    let evTripScali = {};
+    function evIsScaloLeg(e) {
+        const s = evTripScali[e.trip];
+        return !!(e.dest && s && s.has(normCity(e.dest)));
+    }
+
     function buildEvSteps() {
         const today = todayStr();
         const set = new Set(effectiveEvents().map(e => e.date));
         MAP_CITIES.forEach(c => { [c.d, c.dv, c.dn].forEach(x => { if (x && x <= today) set.add(x); }); });
+        Object.values(evCountryTimeline).forEach(tl => tl.forEach(it => { if (it.d <= today) set.add(it.d); }));
+        evTripScali = {}; TRIPS.forEach(t => { evTripScali[t.num] = new Set(t.scali || []); });
         evSteps = [...set].sort().map(d => ({ date: d }));
         evPulseCache = {};
         evStepDays = evSteps.map(s => evDayOf(s.date));
@@ -2674,19 +2730,21 @@
     // Punti in cui parte un anello a ogni passo dell'animazione: città che compaiono (o cambiano tipo) e tratte di viaggio di quella data.
     // È l'UNICA definizione usata sia dalla riproduzione sullo schermo sia dall'esportazione video.
     let evPulseCache = {};
+    const SCALO_RING = 0.45;      // gli scali (città non visitate) hanno anelli più piccoli e più tenui
     function evStepPulses(i, events) {
         if (evPulseCache[i]) return evPulseCache[i];
-        const date = evSteps[i].date, pts = [], seen = new Set();
-        const add = (x, y) => { const k = Math.round(x) + ',' + Math.round(y); if (!seen.has(k)) { seen.add(k); pts.push([x, y]); } };
-        MAP_CITIES.forEach(c => { if (c._x != null && (c.d === date || c.dv === date || c.dn === date)) add(c._x, c._y); });
-        events.forEach(e => { if (e.date === date) { const m = eventMarkerXY(e); if (m) add(m.xy[0], m.xy[1]); } });
-        return (evPulseCache[i] = pts.slice(0, 30));
+        const date = evSteps[i].date, map = new Map();
+        const add = (x, y, s) => { const k = Math.round(x) + ',' + Math.round(y); const cur = map.get(k); if (!cur || s > cur[2]) map.set(k, [x, y, s]); };
+        MAP_CITIES.forEach(c => { if (c._x != null && (c.d === date || c.dv === date || c.dn === date)) add(c._x, c._y, cityKindAt(c, date) === 's' ? SCALO_RING : 1); });
+        events.forEach(e => { if (e.date === date) { const m = eventMarkerXY(e); if (m) add(m.xy[0], m.xy[1], evIsScaloLeg(e) ? SCALO_RING : 1); } });
+        return (evPulseCache[i] = [...map.values()].slice(0, 30));
     }
     let evLastIdx = 0;
-    function evRing(layer, x, y, kz) {
-        layer.append('circle').attr('cx', x).attr('cy', y).attr('r', 3 / kz)
-            .attr('fill', 'none').attr('stroke', RING_COLOR).attr('stroke-width', 2.2 / kz)
-            .transition().duration(900).ease(d3.easeLinear).attr('r', 22 / kz).style('opacity', 0).remove();
+    function evRing(layer, x, y, kz, s) {
+        const small = s < 1;
+        layer.append('circle').attr('cx', x).attr('cy', y).attr('r', 3 * s / kz)
+            .attr('fill', 'none').attr('stroke', RING_COLOR).attr('stroke-width', (small ? 1.4 : 2.2) / kz).style('opacity', small ? 0.65 : 1)
+            .transition().duration(900).ease(d3.easeLinear).attr('r', 22 * s / kz).style('opacity', 0).remove();
     }
     function evDayOf(d) { return evSteps.length ? Math.round((new Date(d) - new Date(evSteps[0].date)) / 86400000) : 0; }
     function evTotalDays() { return evSteps.length ? evStepDays[evStepDays.length - 1] : 0; }
@@ -2716,7 +2774,7 @@
     // categorie dei paesi toccati dagli eventi (per la legenda a colori)
     function evCategoriesPresent() {
         const cats = new Set();
-        effectiveEvents().forEach(e => (e.countries || []).forEach(c => cats.add(categoryOf(displayCountryName(c.name)))));
+        Object.values(evCountryTimeline).forEach(tl => tl.forEach(it => cats.add(it.k)));
         return MAP_CAT_ORDER.filter(k => cats.has(k));
     }
     let evLegendKey = '';
@@ -2741,15 +2799,14 @@
         const allEvents = effectiveEvents();
         const events = allEvents.filter(e => e.date <= date);
         const current = events.length ? events[events.length - 1] : null;
-        const knownNames = new Set();
-        events.forEach(e => (e.countries || []).forEach(c => knownNames.add(c.name)));
 
-        // Colorazione dei paesi: opzionale
+        // Colorazione dei paesi: opzionale; la categoria di ogni paese cambia nel tempo (vedi buildCountryTimelines)
         d3.select('#evCountriesLayer').selectAll('path')
             .attr('fill', d => {
                 if (!evShowCountries) return 'var(--panel-raised)';
                 const name = evIsoToName[String(d.id)];
-                return (name && knownNames.has(name.toUpperCase())) ? (evColorForName(name) || 'var(--panel-raised)') : 'var(--panel-raised)';
+                const lvl = name ? evCountryLevelAt(name, date) : null;
+                return lvl ? (MAP_CAT_COLORS[lvl] || 'var(--panel-raised)') : 'var(--panel-raised)';
             });
 
         // Puntini: tutte le città citate nel file la cui data è già arrivata (+ destinazioni inserite a mano non presenti nel file)
@@ -2792,7 +2849,7 @@
             const kz = Math.sqrt(evZoomK);
             let budget = 40;
             for (let j = jStart; j <= index && budget > 0; j++) {
-                evStepPulses(j, allEvents).forEach(([x, y]) => { if (budget-- > 0) evRing(layer, x, y, kz); });
+                evStepPulses(j, allEvents).forEach(([x, y, s]) => { if (budget-- > 0) evRing(layer, x, y, kz, s); });
             }
         }
     }
@@ -2859,8 +2916,13 @@
         if (evExporting) return;
         const features = await loadWorldAtlas();
         if (!evSteps.length) buildEvSteps();
-        const mimes = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'];
+        // MP4 con H.264 è il formato letto da quasi tutti i dispositivi e app (WhatsApp, Instagram, iPhone, PowerPoint...).
+        // Se il browser non sa crearlo si ripiega su WebM. Non uso "video/mp4" generico: in alcuni browser contiene VP9, non H.264.
+        const mimes = ['video/mp4;codecs=avc1.640028', 'video/mp4;codecs=avc1.42E01F', 'video/mp4;codecs=avc1.42001E', 'video/mp4;codecs=avc1',
+                       'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
         const mime = (window.MediaRecorder && mimes.find(m => MediaRecorder.isTypeSupported(m))) || null;
+        const statusEl = document.getElementById('eventsExportStatus');
+        if (statusEl) statusEl.textContent = '';
         if (!mime) { alert('Questo browser non supporta la registrazione video dal canvas. Prova con Chrome, Edge o Firefox da computer.'); return; }
 
         stopEventsPlay();
@@ -2903,8 +2965,10 @@
         function draw(t) {
             const idx = stepOf(Math.min(t, play)); const date = evSteps[idx].date;
             const labelDate = evMode === 'chrono' ? evDateOfDay(Math.min(1, Math.max(0, t / play)) * evTotalDays()) : date;
-            const known = new Set(); let current = null;
-            events.forEach(e => { if (e.date <= date) { current = e; (e.countries || []).forEach(c => known.add(c.name)); } });
+            let current = null;
+            events.forEach(e => { if (e.date <= date) current = e; });
+            let nCountries = 0;
+            Object.keys(evCountryTimeline).forEach(n => { if (evCountryLevelAt(n, date)) nCountries++; });
             ctx.fillStyle = '#0B1420'; ctx.fillRect(0, 0, W, H);
             ctx.save();
             ctx.translate(W / 2 - ss * (rx0 + rw / 2), H / 2 - ss * (ry0 + rh / 2)); ctx.scale(ss, ss);
@@ -2912,7 +2976,7 @@
             cPaths.forEach(c => {
                 const name = evIsoToName[c.iso];
                 let fill = '#16283D';
-                if (evShowCountries && name && known.has(name.toUpperCase())) fill = evColorForName(name) || fill;
+                if (evShowCountries && name) { const lvl = evCountryLevelAt(name, date); if (lvl) fill = MAP_CAT_COLORS[lvl] || fill; }
                 ctx.fillStyle = fill; ctx.fill(c.p); ctx.stroke(c.p);
             });
             const vis = cities.filter(c => c.d <= date);
@@ -2932,9 +2996,10 @@
             for (let j = idx; j >= 0 && start[j] > t - 900 && np < 60; j--) {
                 const a = (t - start[j]) / 900;
                 if (a < 0) continue;
-                for (const [x, y] of stepPulses[j]) {
+                for (const [x, y, s] of stepPulses[j]) {
                     if (np++ >= 60) break;
-                    ctx.globalAlpha = 1 - a; ctx.beginPath(); ctx.arc(x, y, (3 + 19 * a) / kz, 0, 6.2832); ctx.stroke();
+                    ctx.lineWidth = (s < 1 ? 1.4 : 2.2) / kz;
+                    ctx.globalAlpha = (1 - a) * (s < 1 ? 0.65 : 1); ctx.beginPath(); ctx.arc(x, y, (3 + 19 * a) * s / kz, 0, 6.2832); ctx.stroke();
                 }
             }
             ctx.globalAlpha = 1;
@@ -2952,7 +3017,7 @@
             ctx.fillStyle = 'rgba(11,20,32,0.72)'; rr(24, H - 132, 560, 108, 14); ctx.fill();
             ctx.fillStyle = '#F5A623'; ctx.font = '700 44px "JetBrains Mono", monospace'; ctx.fillText(formatDate(labelDate), 44, H - 76);
             ctx.fillStyle = '#E9EEF4'; ctx.font = '600 20px Manrope, sans-serif';
-            ctx.fillText(`${vis.length} città · ${known.size} paesi`, 44, H - 46);
+            ctx.fillText(`${vis.length} città · ${nCountries} paesi`, 44, H - 46);
             if (current) {
                 ctx.fillStyle = '#7E90A8'; ctx.font = '500 15px Manrope, sans-serif';
                 const txt = `${current.route}${current.come ? ' · ' + current.come : ''}`;
@@ -2993,6 +3058,9 @@
         a.href = url; a.download = 'viaggi-nel-tempo.' + (mime.indexOf('mp4') >= 0 ? 'mp4' : 'webm');
         document.body.appendChild(a); a.click(); a.remove();
         setTimeout(() => URL.revokeObjectURL(url), 5000);
+        if (statusEl) statusEl.textContent = mime.indexOf('mp4') >= 0
+            ? 'Salvato come MP4 (H.264): si apre su quasi tutti i dispositivi e app.'
+            : 'Salvato come WebM: questo browser non sa creare MP4. Se un\'app non lo apre, convertilo (es. con VLC o CloudConvert) o riprova da Chrome/Edge recenti o Safari.';
         return blob;
     }
     window.exportEventsVideo = exportEventsVideo;

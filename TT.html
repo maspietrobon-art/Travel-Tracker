@@ -124,6 +124,18 @@
     .ev-trip-head { margin: 14px 0 4px; font-size: 0.8em; font-weight: 700; color: var(--teal); padding-bottom: 4px; border-bottom: 1px dashed var(--line); }
     .ev-sep { margin: 18px 0 6px; font-size: 0.8em; font-weight: 700; color: var(--muted); }
     .logged-row.ev-hit { background: rgba(245,166,35,0.13); border-left: 3px solid var(--amber); padding-left: 8px; border-radius: 6px; }
+    #eventsMapPanel { position: relative; }
+    #evPreviewLayer { display: none; position: absolute; overflow: hidden; pointer-events: none; z-index: 5; }
+    #evPreviewFrame { position: absolute; box-sizing: border-box; border: 2px dashed #FFD27A; box-shadow: 0 0 0 4000px rgba(5,10,18,0.55); }
+    #evPreviewFrame .pv-tag { position: absolute; left: 6px; top: 4px; color: #FFD27A; font-weight: 700; text-shadow: 0 1px 2px #000; }
+    #evPreviewFrame .pv-panel { position: absolute; background: rgba(11,20,32,0.72); overflow: hidden; }
+    #evPreviewFrame .pv-panel > div { position: absolute; white-space: nowrap; line-height: 1; }
+    #evPreviewFrame .pv-date { color: #F5A623; font-family: "JetBrains Mono", monospace; font-weight: 700; }
+    #evPreviewFrame .pv-cnt { color: #E9EEF4; font-weight: 600; }
+    #evPreviewFrame .pv-route { color: #7E90A8; font-weight: 500; }
+    #evPreviewFrame .pv-leg { color: #E9EEF4; font-weight: 600; display: flex; align-items: center; }
+    #evPreviewFrame .pv-leg span { display: inline-block; }
+    #evPreviewFrame .pv-mark { position: absolute; color: rgba(233,238,244,0.55); font-weight: 600; }
     .tl-controls { flex-wrap: wrap; }
     .tl-year-label { min-width: 0 !important; }
     .ev-full { padding: 10px 12px !important; }
@@ -482,7 +494,7 @@
     <div class="tab-panel" id="tab-mappa-eventi">
         <div class="map-panel" id="eventsMapPanel">
             <div class="section-head"><h2>Come si sono aggiunti i viaggi, evento per evento</h2></div>
-            <div class="section-note ev-note">Ogni città citata nel file dei viaggi compare sulla mappa quando la incontri nel tempo; nei periodi lunghi le città si accendono una dopo l'altra, nell'ordine in cui le hai elencate (i primi 12 anni di vita restano senza viaggi: le città italiane partono dal tuo 13° compleanno fino al primo viaggio all'estero). Per esportare solo una zona, ingrandiscila prima di premere «Esporta video». Trascina per spostarti, rotellina o pizzico per ingrandire (ingrandendo compaiono i nomi). La velocità del Play segue il tempo reale trascorso tra un viaggio e l'altro.</div>
+            <div class="section-note ev-note">Ogni città citata nel file dei viaggi compare sulla mappa quando la incontri nel tempo; nei periodi lunghi le città si accendono una dopo l'altra, nell'ordine in cui le hai elencate (i primi 12 anni di vita restano senza viaggi: le città italiane partono dal tuo 13° compleanno fino al primo viaggio all'estero). Per scegliere cosa finirà nel video: ingrandisci e sposta la mappa e attiva «Anteprima riquadro», che mostra il riquadro tratteggiato esatto con data e legenda al loro posto (il video contiene solo ciò che sta dentro il riquadro). Trascina per spostarti, rotellina o pizzico per ingrandire (ingrandendo compaiono i nomi). La velocità del Play segue il tempo reale trascorso tra un viaggio e l'altro.</div>
             <div class="ev-toolbar">
                 <button class="add-btn" id="eventsCloseFullBtn" style="display:none; padding:7px 14px; font-size:0.85em;">✕ Chiudi</button>
                 <div class="unit-toggle" id="evModeToggle" title="In sequenza: un passo per ogni evento. Cronologico: scorre il tempo reale, gli anni vuoti passano velocemente ma proporzionalmente.">
@@ -503,6 +515,10 @@
                 <select id="eventsExportOrient" title="Orientamento del video" style="background:var(--bg); border:1px solid var(--line); color:var(--text); border-radius:8px; padding:7px 8px; font-family:inherit;">
                     <option value="auto" selected>video: come lo schermo</option><option value="landscape">video orizzontale</option><option value="portrait">video verticale</option>
                 </select>
+                <select id="eventsExportPanel" title="Testi sovrapposti al video" style="background:var(--bg); border:1px solid var(--line); color:var(--text); border-radius:8px; padding:7px 8px; font-family:inherit;">
+                    <option value="full" selected>testi: data e legenda</option><option value="date">solo data</option><option value="none">nessun testo</option>
+                </select>
+                <button class="del-btn" id="eventsPreviewBtn" style="padding:7px 14px;" title="Mostra sulla mappa il riquadro esatto del video, con data e legenda al loro posto">▢ Anteprima riquadro</button>
                 <select id="eventsExportSec" title="Durata del video" style="background:var(--bg); border:1px solid var(--line); color:var(--text); border-radius:8px; padding:7px 8px; font-family:inherit;">
                     <option value="30">video 30 s</option><option value="60" selected>video 60 s</option><option value="90">video 90 s</option>
                 </select>
@@ -510,6 +526,7 @@
                 <span id="eventsExportStatus" style="flex-basis:100%; text-align:right; font-size:0.75em; color:var(--muted);"></span>
             </div>
             <svg id="eventsMap" viewBox="0 0 960 500"></svg>
+            <div id="evPreviewLayer"></div>
             <div class="tl-controls">
                 <button class="add-btn" id="eventsPlayBtn" style="padding:8px 16px;">▶ Play</button>
                 <button class="del-btn" id="eventsResetZoomBtn" style="padding:8px 14px;">Reimposta vista</button>
@@ -2461,15 +2478,50 @@
     function evBaseTransform() { return evInitialTransform || d3.zoomIdentity; }
     // A schermo intero la mappa riempie lo schermo: se lo schermo è più "alto" del mondo (telefono in verticale)
     // mostra una fascia del mondo a tutta altezza, spostabile col dito, invece di una striscia piccola.
+    function evOrient() { const s = document.getElementById('eventsExportOrient'); return s ? s.value : 'auto'; }
+    // Anteprima del formato video: scegliendo "verticale" o "orizzontale" la mappa sullo schermo assume quel formato (9:16 o 16:9),
+    // così si vede esattamente ciò che verrà esportato. "Come lo schermo" lascia tutto com'era.
+    function evLayoutPreview() {
+        const svgEl = document.getElementById('eventsMap'), panel = document.getElementById('eventsMapPanel');
+        ['width', 'height', 'maxWidth', 'flex', 'aspectRatio', 'alignSelf', 'margin', 'display'].forEach(k => { svgEl.style[k] = ''; });
+        const o = evOrient();
+        if (o === 'auto') return;
+        const A = o === 'portrait' ? 9 / 16 : 16 / 9;
+        if (panel.classList.contains('ev-full')) {
+            const w = svgEl.clientWidth, hh = svgEl.clientHeight;          // spazio disponibile (con le regole dello schermo intero)
+            if (w > 0 && hh > 0) {
+                let W = w, H = W / A;
+                if (H > hh) { H = hh; W = H * A; }
+                svgEl.style.width = Math.floor(W) + 'px'; svgEl.style.height = Math.floor(H) + 'px';
+                svgEl.style.flex = '0 0 auto'; svgEl.style.alignSelf = 'center';
+            }
+        } else {
+            svgEl.style.display = 'block'; svgEl.style.margin = '0 auto'; svgEl.style.width = '100%'; svgEl.style.height = 'auto';
+            svgEl.style.aspectRatio = o === 'portrait' ? '9 / 16' : '16 / 9';
+            if (o === 'portrait') svgEl.style.maxWidth = Math.round(window.innerHeight * 0.78 * A) + 'px';
+        }
+    }
     function evApplyViewport() {
         const svgEl = document.getElementById('eventsMap');
         if (!svgEl || !window.__evSvg || !window.__evZoom) return;
+        evLayoutPreview();
         const full = document.getElementById('eventsMapPanel').classList.contains('ev-full');
-        let vw = 960;
-        if (full) { const w = svgEl.clientWidth, hh = svgEl.clientHeight; if (w > 0 && hh > 0) vw = Math.max(260, Math.min(960, Math.round(500 * w / hh))); }
-        svgEl.setAttribute('viewBox', `0 0 ${vw} 500`);
-        evInitialTransform = d3.zoomIdentity.translate(-(960 - vw) / 2, 0);
+        const o = evOrient();
+        if (o === 'portrait') {               // fascia di mondo a tutta altezza (come nel video verticale)
+            const vw = 500 * 9 / 16;
+            svgEl.setAttribute('viewBox', `0 0 ${vw} 500`);
+            evInitialTransform = d3.zoomIdentity.translate(-(960 - vw) / 2, 0);
+        } else if (o === 'landscape') {        // mondo intero in 16:9
+            svgEl.setAttribute('viewBox', '0 -20 960 540');
+            evInitialTransform = d3.zoomIdentity;
+        } else {
+            let vw = 960;
+            if (full) { const w = svgEl.clientWidth, hh = svgEl.clientHeight; if (w > 0 && hh > 0) vw = Math.max(260, Math.min(960, Math.round(500 * w / hh))); }
+            svgEl.setAttribute('viewBox', `0 0 ${vw} 500`);
+            evInitialTransform = d3.zoomIdentity.translate(-(960 - vw) / 2, 0);
+        }
         window.__evSvg.call(window.__evZoom.transform, evInitialTransform);
+        evPreviewSync();
     }
 
     function evSetFull(on) {
@@ -2529,7 +2581,14 @@
         });
         document.getElementById('eventsCloseFullBtn').addEventListener('click', () => evSetFull(false));
         window.addEventListener('resize', () => {
-            if (document.getElementById('eventsMapPanel').classList.contains('ev-full')) setTimeout(evApplyViewport, 150);
+            if (document.getElementById('eventsMapPanel').classList.contains('ev-full') || evOrient() !== 'auto' || evPreviewOn) setTimeout(evApplyViewport, 150);
+        });
+        document.getElementById('eventsExportOrient').addEventListener('change', () => { evApplyViewport(); });
+        document.getElementById('eventsExportPanel').addEventListener('change', () => evPreviewSync());
+        document.getElementById('eventsPreviewBtn').addEventListener('click', () => {
+            evPreviewOn = !evPreviewOn;
+            const bt = document.getElementById('eventsPreviewBtn'); bt.classList.toggle('add-btn', evPreviewOn); bt.classList.toggle('del-btn', !evPreviewOn);
+            evPreviewSync();
         });
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && document.getElementById('eventsMapPanel').classList.contains('ev-full')) evSetFull(false);
@@ -2784,6 +2843,7 @@
         const key = items.join(',');
         if (key === evLegendKey) return;
         evLegendKey = key;
+        setTimeout(evPreviewSync, 0);
         el.innerHTML = items.map(k => `<span><span class="dot" style="background:${MAP_CAT_COLORS[k]}; border-radius:3px;"></span>${CATEGORY_LABELS[k]}</span>`).join('');
     }
 
@@ -2833,6 +2893,10 @@
         const cnt = document.getElementById('evCityCount');
         if (cnt) cnt.textContent = `${all.length} città sulla mappa su ${MAP_CITIES.length}`;
 
+        evPrevState = { date: formatDate(labelDate), nCities: shown.length,
+                        nCountries: Object.keys(evCountryTimeline).filter(n => evCountryLevelAt(n, date)).length,
+                        route: current ? evRouteText(current) : '' };
+        evPreviewText();
         document.getElementById('eventsSlider').value = evMode === 'chrono' ? evDayOf(labelDate) : index;
         document.getElementById('eventsLabel').textContent = evMode === 'chrono' ? formatDate(labelDate) : `${formatDate(date)} (${index + 1}/${evSteps.length})`;
         document.getElementById('eventsCurrentNote').textContent = current
@@ -2911,6 +2975,79 @@
     /* ================= ESPORTAZIONE VIDEO DELL'ANIMAZIONE ================= */
     // Ridisegna l'animazione su un canvas 1280x720 (stessi colori, stessa vista/zoom di quella sullo schermo)
     // e la registra con MediaRecorder: il file scaricato è un video WebM (o MP4 dove il browser lo supporta).
+    // ---- Geometria dell'esportazione: il riquadro del video dentro la mappa sullo schermo ----
+    // Il video mostra ESATTAMENTE ciò che sta dentro il riquadro tratteggiato dell'anteprima: il più grande rettangolo
+    // con il formato del video (16:9 o 9:16) che sta nella mappa visibile, centrato.
+    function evExportGeometry() {
+        const svgEl = document.getElementById('eventsMap');
+        const sel = evOrient();
+        const portrait = sel === 'portrait' || (sel === 'auto' && window.innerHeight > window.innerWidth);
+        const W = portrait ? 720 : 1280, H = portrait ? 1280 : 720, A = W / H;
+        const cw = svgEl.clientWidth || 960, ch = svgEl.clientHeight || 500;
+        const vb = svgEl.viewBox && svgEl.viewBox.baseVal;
+        const vx = vb ? vb.x : 0, vy = vb ? vb.y : 0, vw = (vb && vb.width) || 960, vh = (vb && vb.height) || 500;
+        const s0 = Math.min(cw / vw, ch / vh);                 // pixel dello schermo per unità del viewBox
+        const fw = Math.min(vw * s0, vh * s0 * A), fh = fw / A;
+        const fx = (cw - fw) / 2, fy = (ch - fh) / 2;
+        const tr = (window.__evSvg && d3.zoomTransform(svgEl)) || { k: 1, x: 0, y: 0 };
+        const rwV = fw / s0, rhV = fh / s0, cx = vx + vw / 2, cy = vy + vh / 2;
+        return { portrait, W, H, fx, fy, fw, fh, tr, rw: rwV / tr.k, rh: rhV / tr.k,
+                 rx0: ((cx - rwV / 2) - tr.x) / tr.k, ry0: ((cy - rhV / 2) - tr.y) / tr.k };
+    }
+    const EV_FONTS = { date: '700 44px "JetBrains Mono", monospace', cnt: '600 20px Manrope, sans-serif', route: '500 15px Manrope, sans-serif', leg: '600 14px Manrope, sans-serif' };
+    function evRouteText(e) { const t = `${e.route}${e.come ? ' · ' + e.come : ''}`; return t.length > 27 ? t.slice(0, 26) + '…' : t; }
+    function evPanelMode() { const s = document.getElementById('eventsExportPanel'); return s ? s.value : 'full'; }
+    // Pannello in basso a sinistra (data, conteggi, tratta e, se richiesto, legenda): dimensioni in pixel del VIDEO.
+    function evOverlayLayout(ctx, portrait, events, legendItems, mode) {
+        if (mode === 'none') return null;
+        const items = mode === 'full' ? legendItems : [];
+        const mw = (font, txt) => { ctx.font = font; return ctx.measureText(txt).width; };
+        const wText = Math.ceil(Math.max(mw(EV_FONTS.date, '00/00/0000'), mw(EV_FONTS.cnt, '000 città · 00 paesi'), ...events.map(e => mw(EV_FONTS.route, evRouteText(e)))));
+        const wLeg = items.length ? Math.ceil(Math.max(...items.map(k => mw(EV_FONTS.leg, CATEGORY_LABELS[k])))) + 22 : 0;
+        const PAD = 18, GAP = 26, TEXT_H = 88, LEG_ROW = 21, MARGIN = 24;
+        const legH = items.length * LEG_ROW;
+        const side = !portrait && wLeg > 0;
+        const panelW = PAD * 2 + (side ? wText + GAP + wLeg : Math.max(wText, wLeg));
+        const panelH = PAD * 2 + (side ? Math.max(TEXT_H, legH) : TEXT_H + (legH ? 12 + legH : 0));
+        return { items, wText, wLeg, PAD, GAP, TEXT_H, LEG_ROW, MARGIN, legH, side, panelW, panelH };
+    }
+
+    // ---- Anteprima sullo schermo del riquadro del video (con data e legenda al loro posto) ----
+    let evPreviewOn = false;
+    const evMeasureCtx = document.createElement('canvas').getContext('2d');
+    let evPrevState = { date: '', nCities: 0, nCountries: 0, route: '' };
+    function evPreviewText() {
+        const d = document.getElementById('evPvDate'); if (!d) return;
+        d.textContent = evPrevState.date;
+        document.getElementById('evPvCnt').textContent = `${evPrevState.nCities} città · ${evPrevState.nCountries} paesi`;
+        document.getElementById('evPvRoute').textContent = evPrevState.route;
+    }
+    function evPreviewSync() {
+        const layer = document.getElementById('evPreviewLayer'), svgEl = document.getElementById('eventsMap');
+        if (!layer) return;
+        if (!evPreviewOn || !svgEl.clientWidth || !evSteps.length) { layer.style.display = 'none'; layer.innerHTML = ''; return; }
+        const g = evExportGeometry(), sc = g.fw / g.W, mode = evPanelMode();
+        const L = evOverlayLayout(evMeasureCtx, g.portrait, effectiveEvents(), evShowCountries ? evCategoriesPresent() : [], mode);
+        const pr = document.getElementById('eventsMapPanel').getBoundingClientRect(), sr = svgEl.getBoundingClientRect();
+        const pnl = document.getElementById('eventsMapPanel');
+        layer.style.cssText = `display:block; left:${(sr.left - pr.left - pnl.clientLeft + pnl.scrollLeft).toFixed(1)}px; top:${(sr.top - pr.top - pnl.clientTop + pnl.scrollTop).toFixed(1)}px; width:${sr.width.toFixed(1)}px; height:${sr.height.toFixed(1)}px;`;
+        let inner = `<div class="pv-tag" style="font-size:${Math.max(10, 12 * sc)}px;">video ${g.W}×${g.H}</div>`;
+        if (L) {
+            const px = L.MARGIN * sc, py = (g.H - L.MARGIN - L.panelH) * sc, f = n => (n * sc).toFixed(2);
+            const lx = L.side ? L.PAD + L.wText + L.GAP : L.PAD;
+            const ly0 = L.side ? L.PAD + Math.max(0, (Math.max(L.TEXT_H, L.legH) - L.legH) / 2) : L.PAD + L.TEXT_H + 12;
+            inner += `<div class="pv-panel" style="left:${f(L.MARGIN)}px; top:${py.toFixed(2)}px; width:${f(L.panelW)}px; height:${f(L.panelH)}px; border-radius:${f(14)}px;">
+                <div id="evPvDate" class="pv-date" style="left:${f(L.PAD)}px; top:${f(L.PAD - 3)}px; font-size:${f(44)}px;"></div>
+                <div id="evPvCnt" class="pv-cnt" style="left:${f(L.PAD)}px; top:${f(L.PAD + 47)}px; font-size:${f(20)}px;"></div>
+                <div id="evPvRoute" class="pv-route" style="left:${f(L.PAD)}px; top:${f(L.PAD + 72)}px; font-size:${f(15)}px;"></div>
+                ${L.items.map((k, i) => `<div class="pv-leg" style="left:${f(lx)}px; top:${f(ly0 + i * L.LEG_ROW)}px; height:${f(L.LEG_ROW)}px; font-size:${f(14)}px;"><span style="background:${MAP_CAT_COLORS[k]}; width:${f(14)}px; height:${f(14)}px; margin-right:${f(8)}px;"></span>${CATEGORY_LABELS[k]}</div>`).join('')}
+            </div>
+            <div class="pv-mark" style="right:${f(30)}px; top:${f(12)}px; font-size:${f(16)}px;">Travel Log</div>`;
+        }
+        layer.innerHTML = `<div id="evPreviewFrame" style="left:${g.fx}px; top:${g.fy}px; width:${g.fw}px; height:${g.fh}px;">${inner}</div>`;
+        evPreviewText();
+    }
+
     async function exportEventsVideo(totalSec) {
         if (evExporting) return;
         const features = await loadWorldAtlas();
@@ -2927,21 +3064,17 @@
         stopEventsPlay();
         evExporting = true; evExportCancel = false;
         // Orientamento: come lo schermo (verticale se più alto che largo), oppure scelto a mano
-        const orientSel = (document.getElementById('eventsExportOrient') || {}).value || 'auto';
-        const portrait = orientSel === 'portrait' || (orientSel === 'auto' && window.innerHeight > window.innerWidth);
-        const W = portrait ? 720 : 1280, H = portrait ? 1280 : 720;
+        const geo = evExportGeometry();
+        const portrait = geo.portrait, W = geo.W, H = geo.H;
         const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
         const ctx = cv.getContext('2d');
         const projection = d3.geoNaturalEarth1().fitSize([960, 500], features);
         const gp = d3.geoPath(projection);
         const cPaths = features.features.map(f => ({ iso: String(f.id), p: new Path2D(gp(f)) }));
-        const tr = (window.__evSvg && d3.zoomTransform(window.__evSvg.node())) || { k: 1, x: 0, y: 0 };
-        // zona di mondo attualmente visibile sullo schermo, adattata al formato 16:9 del video
-        const vbx = document.getElementById('eventsMap').viewBox.baseVal;
-        const vw = (vbx && vbx.width) || 960, vh = (vbx && vbx.height) || 500;
-        const rx0 = -tr.x / tr.k, ry0 = -tr.y / tr.k, rw = vw / tr.k, rh = vh / tr.k;
-        let ss = Math.min(W / rw, H / rh);
-        if (portrait && rw / rh > W / H) ss = H / rh;      // in verticale: una fascia di mondo a tutta altezza (si sceglie spostando/ingrandendo la mappa)
+        const tr = geo.tr;
+        // zona di mondo dentro il riquadro dell'anteprima: la stessa che vedi sullo schermo
+        const rx0 = geo.rx0, ry0 = geo.ry0, rw = geo.rw, rh = geo.rh;
+        const ss = W / rw;
         const kEq = ss / (W / 960);
         const legendItems = evShowCountries ? evCategoriesPresent() : [];
 
@@ -2962,22 +3095,12 @@
         const stepPulses = evSteps.map((_, i) => evStepPulses(i, events));
         const cities = MAP_CITIES.filter(c => c._x != null).slice().sort((a, b) => a.d.localeCompare(b.d));
         const stepOf = t => { let lo = 0, hi = start.length - 1; while (lo < hi) { const m = (lo + hi + 1) >> 1; if (start[m] <= t) lo = m; else hi = m - 1; } return lo; };
-        const kz = Math.sqrt(kEq);
+        const kz = Math.sqrt(tr.k);      // stessa formula dello schermo: puntini, anelli e nomi hanno le stesse proporzioni rispetto al riquadro
         const ringK = portrait ? 1 : 0.7;      // video orizzontale (PC): anelli più piccoli; il verticale resta com'è
         const rr = (x, y, ww, hh, r) => { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + ww, y, x + ww, y + hh, r); ctx.arcTo(x + ww, y + hh, x, y + hh, r); ctx.arcTo(x, y + hh, x, y, r); ctx.arcTo(x, y, x + ww, y, r); ctx.closePath(); };
 
-        // Pannello in basso a sinistra: data, conteggi, tratta e legenda, largo solo quanto serve.
-        // Orizzontale: legenda accanto ai testi; verticale: legenda sotto ai testi.
-        const F_DATE = '700 44px "JetBrains Mono", monospace', F_CNT = '600 20px Manrope, sans-serif', F_ROUTE = '500 15px Manrope, sans-serif', F_LEG = '600 14px Manrope, sans-serif';
-        const routeText = e => { const t = `${e.route}${e.come ? ' · ' + e.come : ''}`; return t.length > 27 ? t.slice(0, 26) + '…' : t; };
-        const mw = (font, txt) => { ctx.font = font; return ctx.measureText(txt).width; };
-        const wText = Math.ceil(Math.max(mw(F_DATE, '00/00/0000'), mw(F_CNT, '000 città · 00 paesi'), ...events.map(e => mw(F_ROUTE, routeText(e)))));
-        const wLeg = legendItems.length ? Math.ceil(Math.max(...legendItems.map(k => mw(F_LEG, CATEGORY_LABELS[k])))) + 22 : 0;
-        const PAD = 18, GAP = 26, TEXT_H = 88, LEG_ROW = 21;
-        const legH = legendItems.length * LEG_ROW;
-        const sideLegend = !portrait && wLeg > 0;
-        const panelW = PAD * 2 + (sideLegend ? wText + GAP + wLeg : Math.max(wText, wLeg));
-        const panelH = PAD * 2 + (sideLegend ? Math.max(TEXT_H, legH) : TEXT_H + (legH ? 12 + legH : 0));
+        const panelMode = evPanelMode();
+        const L = evOverlayLayout(ctx, portrait, events, legendItems, panelMode);
 
         function draw(t) {
             const idx = stepOf(Math.min(t, play)); const date = evSteps[idx].date;
@@ -2989,7 +3112,7 @@
             ctx.fillStyle = '#0B1420'; ctx.fillRect(0, 0, W, H);
             ctx.save();
             ctx.translate(W / 2 - ss * (rx0 + rw / 2), H / 2 - ss * (ry0 + rh / 2)); ctx.scale(ss, ss);
-            ctx.lineWidth = 0.5 / kEq; ctx.strokeStyle = '#0B1420';
+            ctx.lineWidth = 0.5 / tr.k; ctx.strokeStyle = '#0B1420';
             cPaths.forEach(c => {
                 const name = evIsoToName[c.iso];
                 let fill = '#16283D';
@@ -3005,8 +3128,8 @@
             });
             ctx.globalAlpha = 1;
             if (tr.k >= 3) {            // i nomi compaiono solo se ingrandisci tu la mappa (non per il ritaglio verticale)
-                ctx.fillStyle = '#E9EEF4'; ctx.font = `${11 / ss}px sans-serif`;     // dimensione leggibile a prescindere dall'orientamento
-                vis.forEach(c => ctx.fillText(cityLabel(c.n), c._x + 4 / ss, c._y + 1 / ss));
+                ctx.fillStyle = '#E9EEF4'; ctx.font = `${8 / tr.k}px sans-serif`;    // come sullo schermo
+                vis.forEach(c => ctx.fillText(cityLabel(c.n), c._x + 3 / tr.k, c._y + 1 / tr.k));
             }
             ctx.strokeStyle = RING_COLOR; ctx.lineWidth = 2.2 / kz;
             let np = 0;
@@ -3021,23 +3144,25 @@
             }
             ctx.globalAlpha = 1;
             ctx.restore();
-            // pannello con data, conteggi, tratta e legenda
-            const px = 24, py = H - 24 - panelH, tx = px + PAD, ty = py + PAD + 34;
-            ctx.fillStyle = 'rgba(11,20,32,0.72)'; rr(px, py, panelW, panelH, 14); ctx.fill();
-            ctx.fillStyle = '#F5A623'; ctx.font = F_DATE; ctx.fillText(formatDate(labelDate), tx, ty);
-            ctx.fillStyle = '#E9EEF4'; ctx.font = F_CNT; ctx.fillText(`${vis.length} città · ${nCountries} paesi`, tx, ty + 30);
-            if (current) { ctx.fillStyle = '#7E90A8'; ctx.font = F_ROUTE; ctx.fillText(routeText(current), tx, ty + 50); }
-            if (legendItems.length) {
-                const lx = sideLegend ? tx + wText + GAP : tx;
-                const ly0 = sideLegend ? py + PAD + Math.max(0, (Math.max(TEXT_H, legH) - legH) / 2) : py + PAD + TEXT_H + 12;
-                ctx.font = F_LEG;
-                legendItems.forEach((k, i) => {
-                    const y = ly0 + i * LEG_ROW;
-                    ctx.fillStyle = MAP_CAT_COLORS[k]; ctx.fillRect(lx, y + 3, 14, 14);
-                    ctx.fillStyle = '#E9EEF4'; ctx.fillText(CATEGORY_LABELS[k], lx + 22, y + 15);
-                });
+            // pannello con data, conteggi, tratta e (se richiesta) legenda: identico a quello dell'anteprima
+            if (L) {
+                const px = L.MARGIN, py = H - L.MARGIN - L.panelH, tx = px + L.PAD, ty = py + L.PAD + 34;
+                ctx.fillStyle = 'rgba(11,20,32,0.72)'; rr(px, py, L.panelW, L.panelH, 14); ctx.fill();
+                ctx.fillStyle = '#F5A623'; ctx.font = EV_FONTS.date; ctx.fillText(formatDate(labelDate), tx, ty);
+                ctx.fillStyle = '#E9EEF4'; ctx.font = EV_FONTS.cnt; ctx.fillText(`${vis.length} città · ${nCountries} paesi`, tx, ty + 30);
+                if (current) { ctx.fillStyle = '#7E90A8'; ctx.font = EV_FONTS.route; ctx.fillText(evRouteText(current), tx, ty + 50); }
+                if (L.items.length) {
+                    const lx = L.side ? tx + L.wText + L.GAP : tx;
+                    const ly0 = L.side ? py + L.PAD + Math.max(0, (Math.max(L.TEXT_H, L.legH) - L.legH) / 2) : py + L.PAD + L.TEXT_H + 12;
+                    ctx.font = EV_FONTS.leg;
+                    L.items.forEach((k, i) => {
+                        const y = ly0 + i * L.LEG_ROW;
+                        ctx.fillStyle = MAP_CAT_COLORS[k]; ctx.fillRect(lx, y + 3, 14, 14);
+                        ctx.fillStyle = '#E9EEF4'; ctx.fillText(CATEGORY_LABELS[k], lx + 22, y + 15);
+                    });
+                }
+                ctx.fillStyle = 'rgba(233,238,244,0.55)'; ctx.font = '600 16px Manrope, sans-serif'; ctx.fillText('Travel Log', W - 110, 32);
             }
-            ctx.fillStyle = 'rgba(233,238,244,0.55)'; ctx.font = '600 16px Manrope, sans-serif'; ctx.fillText('Travel Log', W - 110, 32);
         }
 
         const stream = cv.captureStream(30);

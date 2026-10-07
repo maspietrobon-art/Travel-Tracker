@@ -127,8 +127,8 @@
     .tl-controls { flex-wrap: wrap; }
     .tl-year-label { min-width: 0 !important; }
     .ev-full { padding: 10px 12px !important; }
-    .ev-full .section-head h2 { display: none; }
-    .ev-full .section-head { justify-content: flex-end; margin-bottom: 6px; }
+    .ev-full .section-head { display: none; }
+    @media (max-height: 520px) { .ev-full .ev-legend, .ev-full #eventsCurrentNote { display: none; } }
     .ev-full .ev-toolbar { flex-wrap: nowrap; overflow-x: auto; margin-bottom: 6px; padding-bottom: 2px; }
     .ev-full .ev-toolbar > * { flex-shrink: 0; }
     .ev-full .tl-controls { gap: 8px; margin-top: 6px; }
@@ -481,11 +481,10 @@
 
     <div class="tab-panel" id="tab-mappa-eventi">
         <div class="map-panel" id="eventsMapPanel">
-            <div class="section-head"><h2>Come si sono aggiunti i viaggi, evento per evento</h2>
-                <button class="del-btn" id="eventsCloseFullBtn" style="display:none; padding:8px 16px; font-size:0.9em;">✕ Chiudi schermo intero</button>
-            </div>
+            <div class="section-head"><h2>Come si sono aggiunti i viaggi, evento per evento</h2></div>
             <div class="section-note ev-note">Ogni città citata nel file dei viaggi compare sulla mappa quando la incontri nel tempo; nei periodi lunghi le città si accendono una dopo l'altra, nell'ordine in cui le hai elencate (i primi 12 anni di vita restano senza viaggi: le città italiane partono dal tuo 13° compleanno fino al primo viaggio all'estero). Per esportare solo una zona, ingrandiscila prima di premere «Esporta video». Trascina per spostarti, rotellina o pizzico per ingrandire (ingrandendo compaiono i nomi). La velocità del Play segue il tempo reale trascorso tra un viaggio e l'altro.</div>
             <div class="ev-toolbar">
+                <button class="add-btn" id="eventsCloseFullBtn" style="display:none; padding:7px 14px; font-size:0.85em;">✕ Chiudi</button>
                 <div class="unit-toggle" id="evModeToggle" title="In sequenza: un passo per ogni evento. Cronologico: scorre il tempo reale, gli anni vuoti passano velocemente ma proporzionalmente.">
                     <button data-mode="seq" class="active">In sequenza</button>
                     <button data-mode="chrono">Cronologico</button>
@@ -501,6 +500,9 @@
                 </div>
                 <button class="del-btn" id="eventsFullBtn" style="padding:7px 14px;">⛶ Schermo intero</button>
                 <span style="flex:1;"></span>
+                <select id="eventsExportOrient" title="Orientamento del video" style="background:var(--bg); border:1px solid var(--line); color:var(--text); border-radius:8px; padding:7px 8px; font-family:inherit;">
+                    <option value="auto" selected>video: come lo schermo</option><option value="landscape">video orizzontale</option><option value="portrait">video verticale</option>
+                </select>
                 <select id="eventsExportSec" title="Durata del video" style="background:var(--bg); border:1px solid var(--line); color:var(--text); border-radius:8px; padding:7px 8px; font-family:inherit;">
                     <option value="30">video 30 s</option><option value="60" selected>video 60 s</option><option value="90">video 90 s</option>
                 </select>
@@ -2473,16 +2475,9 @@
         document.getElementById('eventsCloseFullBtn').style.display = on ? '' : 'none';
         document.getElementById('eventsFullBtn').style.display = on ? 'none' : '';
         try {
-            if (on && p.requestFullscreen && !document.fullscreenElement) {
-                p.requestFullscreen().then(() => {
-                    // sul telefono la mappa (larga) sta meglio in orizzontale: ci proviamo, se non è permesso resta com'è
-                    try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => {}); } catch (e) {}
-                }).catch(() => {});
-            }
-            if (!on) {
-                try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) {}
-                if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
-            }
+            // nessun blocco dell'orientamento: la mappa si adatta sia al telefono in verticale sia in orizzontale
+            if (on && p.requestFullscreen && !document.fullscreenElement) p.requestFullscreen().catch(() => {});
+            if (!on && document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
         } catch (e) { /* resta il pieno schermo "a finestra", chiudibile col pulsante */ }
         setTimeout(evApplyViewport, 150);
     }
@@ -2927,7 +2922,10 @@
 
         stopEventsPlay();
         evExporting = true; evExportCancel = false;
-        const W = 1280, H = 720;
+        // Orientamento: come lo schermo (verticale se più alto che largo), oppure scelto a mano
+        const orientSel = (document.getElementById('eventsExportOrient') || {}).value || 'auto';
+        const portrait = orientSel === 'portrait' || (orientSel === 'auto' && window.innerHeight > window.innerWidth);
+        const W = portrait ? 720 : 1280, H = portrait ? 1280 : 720;
         const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
         const ctx = cv.getContext('2d');
         const projection = d3.geoNaturalEarth1().fitSize([960, 500], features);
@@ -2938,7 +2936,8 @@
         const vbx = document.getElementById('eventsMap').viewBox.baseVal;
         const vw = (vbx && vbx.width) || 960, vh = (vbx && vbx.height) || 500;
         const rx0 = -tr.x / tr.k, ry0 = -tr.y / tr.k, rw = vw / tr.k, rh = vh / tr.k;
-        const ss = Math.min(W / rw, H / rh);
+        let ss = Math.min(W / rw, H / rh);
+        if (portrait && rw / rh > W / H) ss = H / rh;      // in verticale: una fascia di mondo a tutta altezza (si sceglie spostando/ingrandendo la mappa)
         const kEq = ss / (W / 960);
         const legendItems = evShowCountries ? evCategoriesPresent() : [];
 
@@ -2987,9 +2986,9 @@
                 ctx.beginPath(); ctx.arc(c._x, c._y, (kk === 'n' ? 1.7 : 2.4) / kz, 0, 6.2832); ctx.fill(); ctx.stroke();
             });
             ctx.globalAlpha = 1;
-            if (kEq >= 3) {
-                ctx.fillStyle = '#E9EEF4'; ctx.font = `${8 / kEq}px sans-serif`;
-                vis.forEach(c => ctx.fillText(cityLabel(c.n), c._x + 3 / kEq, c._y + 1 / kEq));
+            if (tr.k >= 3) {            // i nomi compaiono solo se ingrandisci tu la mappa (non per il ritaglio verticale)
+                ctx.fillStyle = '#E9EEF4'; ctx.font = `${11 / ss}px sans-serif`;     // dimensione leggibile a prescindere dall'orientamento
+                vis.forEach(c => ctx.fillText(cityLabel(c.n), c._x + 4 / ss, c._y + 1 / ss));
             }
             ctx.strokeStyle = RING_COLOR; ctx.lineWidth = 2.2 / kz;
             let np = 0;
@@ -3059,8 +3058,8 @@
         document.body.appendChild(a); a.click(); a.remove();
         setTimeout(() => URL.revokeObjectURL(url), 5000);
         if (statusEl) statusEl.textContent = mime.indexOf('mp4') >= 0
-            ? 'Salvato come MP4 (H.264): si apre su quasi tutti i dispositivi e app.'
-            : 'Salvato come WebM: questo browser non sa creare MP4. Se un\'app non lo apre, convertilo (es. con VLC o CloudConvert) o riprova da Chrome/Edge recenti o Safari.';
+            ? `Video ${portrait ? 'verticale' : 'orizzontale'} salvato come MP4 (H.264): si apre su quasi tutti i dispositivi e app.`
+            : `Video ${portrait ? 'verticale' : 'orizzontale'} salvato come WebM: questo browser non sa creare MP4. Se un\'app non lo apre, convertilo (es. con VLC o CloudConvert) o riprova da Chrome/Edge recenti o Safari.`;
         return blob;
     }
     window.exportEventsVideo = exportEventsVideo;

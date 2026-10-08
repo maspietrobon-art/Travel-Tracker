@@ -328,8 +328,8 @@
     </div>
 
     <div class="map-panel">
-        <div class="section-head"><h2>Quando hai conosciuto un nuovo paese</h2></div>
-        <div class="section-note" id="timelinePeakNote">In base al file dei movimenti — solo paesi realmente visitati (esclusi attraversati/confine).</div>
+        <div class="section-head"><h2>Paesi nuovi e viaggi per anno</h2></div>
+        <div class="section-note" id="timelinePeakNote">Barre: paesi realmente visitati conosciuti per la prima volta in quell'anno (esclusi attraversati e visti dal confine). Linea: viaggi internazionali iniziati in quell'anno.</div>
         <div class="big-pie-wrap" style="max-width:100%;"><canvas id="timelineChart"></canvas></div>
     </div>
 
@@ -1296,17 +1296,36 @@
         const relevant = allChronologyEntries().filter(e => isRealVisit(e.name));
         const byYear = {};
         relevant.forEach(e => { (byYear[e.year] = byYear[e.year] || []).push(e.name); });
-        const years = Object.keys(byYear).map(Number).sort((a, b) => a - b);
-        const counts = years.map(y => byYear[y].length);
+        const tripsByYear = {};
+        allTripStarts().forEach(s => { const y = +s.slice(0, 4); tripsByYear[y] = (tripsByYear[y] || 0) + 1; });
+        // asse del tempo continuo dal primo anno con dati fino a quest'anno (gli anni senza dati valgono 0)
+        const allYears = Object.keys(byYear).map(Number).concat(Object.keys(tripsByYear).map(Number));
+        const y0 = Math.min(...allYears), y1 = Math.max(Math.max(...allYears), new Date().getFullYear());
+        const years = []; for (let y = y0; y <= y1; y++) years.push(y);
+        const counts = years.map(y => (byYear[y] || []).length);
+        const trips = years.map(y => tripsByYear[y] || 0);
 
         if (timelineChart) timelineChart.destroy();
         timelineChart = new Chart(document.getElementById('timelineChart'), {
             type: 'bar',
-            data: { labels: years, datasets: [{ data: counts, backgroundColor: '#F5A623', borderRadius: 4, maxBarThickness: 28 }] },
+            data: { labels: years, datasets: [
+                { type: 'line', label: 'Viaggi internazionali', data: trips, borderColor: '#43C6AC', backgroundColor: '#43C6AC', borderWidth: 2.5,
+                  pointRadius: 3, pointHoverRadius: 5, tension: 0, order: 0 },
+                { type: 'bar', label: 'Paesi nuovi', data: counts, backgroundColor: '#F5A623', borderRadius: 4, maxBarThickness: 28, order: 1 }
+            ] },
             options: {
+                interaction: { mode: 'index', intersect: false },
                 plugins: {
-                    legend: { display: false },
-                    tooltip: { callbacks: { label: (ctx) => byYear[years[ctx.dataIndex]].join(', ') } }
+                    legend: { display: true, labels: { color: '#9FB0C6', boxWidth: 14, boxHeight: 14 } },
+                    tooltip: { callbacks: {
+                        title: (items) => String(years[items[0].dataIndex]),
+                        label: (ctx) => {
+                            const y = years[ctx.dataIndex];
+                            if (ctx.dataset.type === 'line') return `Viaggi internazionali: ${ctx.parsed.y}`;
+                            const names = byYear[y] || [];
+                            return `Paesi nuovi: ${ctx.parsed.y}${names.length ? ' (' + names.join(', ') + ')' : ''}`;
+                        }
+                    } }
                 },
                 scales: {
                     x: { ticks: { color: '#7E90A8', autoSkip: false, maxRotation: 60, minRotation: 60 }, grid: { display: false } },
@@ -1316,11 +1335,18 @@
         });
 
         let peakYear = null, peakCount = 0;
-        years.forEach(y => { if (byYear[y].length > peakCount) { peakCount = byYear[y].length; peakYear = y; } });
+        years.forEach(y => { if ((byYear[y] || []).length > peakCount) { peakCount = byYear[y].length; peakYear = y; } });
+        const totalNew = counts.reduce((a, b) => a + b, 0), totalTrips = trips.reduce((a, b) => a + b, 0);
+        let busiestYear = null, busiest = 0; years.forEach((y, i) => { if (trips[i] > busiest) { busiest = trips[i]; busiestYear = y; } });
         const note = document.getElementById('timelinePeakNote');
-        if (peakYear) {
-            note.textContent = `Il periodo con più scoperte è stato il ${peakYear}: ${peakCount} paesi nuovi (${byYear[peakYear].join(', ')}).`;
-        }
+        const base = 'Barre: paesi realmente visitati conosciuti per la prima volta in quell\'anno (esclusi attraversati e visti dal confine). Linea: viaggi internazionali iniziati in quell\'anno.';
+        let extra = '';
+        const pn = n => `${n} ${n === 1 ? 'paese nuovo' : 'paesi nuovi'}`;
+        if (peakYear) extra += ` Il periodo con più scoperte è stato il ${peakYear}: ${pn(peakCount)} (${byYear[peakYear].join(', ')}), in ${tripsByYear[peakYear] || 0} ${(tripsByYear[peakYear] || 0) === 1 ? 'viaggio' : 'viaggi'}.`;
+        if (busiestYear) extra += ` L'anno con più viaggi è il ${busiestYear} (${busiest}), con ${pn((byYear[busiestYear] || []).length)}.`;
+        if (totalTrips) extra += ` In tutto: ${pn(totalNew)} e ${totalTrips} viaggi internazionali.`;
+        note.textContent = base + extra;
+        if (typeof initNoteClamps === 'function') setTimeout(initNoteClamps, 30);
     }
 
     /* ================= RENDER: PAESI CONOSCIUTI PER DECADE D'ETÀ ================= */
@@ -2798,11 +2824,15 @@
         return (evPulseCache[i] = [...map.values()].slice(0, 30));
     }
     let evLastIdx = 0;
+    // Su PC (mouse, schermo grande) gli anelli sono grandi la metà; su telefono e tablet restano come sono.
+    // Lo stesso fattore vale per l'anteprima, la riproduzione e il video esportato, così coincidono.
+    function evIsPC() { return !!(window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches); }
+    function evRingK() { return evIsPC() ? 0.5 : 1; }
     function evRing(layer, x, y, kz, s) {
-        const small = s < 1;
-        layer.append('circle').attr('cx', x).attr('cy', y).attr('r', 3 * s / kz)
-            .attr('fill', 'none').attr('stroke', RING_COLOR).attr('stroke-width', (small ? 1.4 : 2.2) / kz).style('opacity', small ? 0.65 : 1)
-            .transition().duration(900).ease(d3.easeLinear).attr('r', 22 * s / kz).style('opacity', 0).remove();
+        const small = s < 1, K = evRingK();
+        layer.append('circle').attr('cx', x).attr('cy', y).attr('r', 3 * s * K / kz)
+            .attr('fill', 'none').attr('stroke', RING_COLOR).attr('stroke-width', (small ? 1.4 : 2.2) * (K < 1 ? 0.8 : 1) / kz).style('opacity', small ? 0.65 : 1)
+            .transition().duration(900).ease(d3.easeLinear).attr('r', 22 * s * K / kz).style('opacity', 0).remove();
     }
     function evDayOf(d) { return evSteps.length ? Math.round((new Date(d) - new Date(evSteps[0].date)) / 86400000) : 0; }
     function evTotalDays() { return evSteps.length ? evStepDays[evStepDays.length - 1] : 0; }
@@ -3096,7 +3126,7 @@
         const cities = MAP_CITIES.filter(c => c._x != null).slice().sort((a, b) => a.d.localeCompare(b.d));
         const stepOf = t => { let lo = 0, hi = start.length - 1; while (lo < hi) { const m = (lo + hi + 1) >> 1; if (start[m] <= t) lo = m; else hi = m - 1; } return lo; };
         const kz = Math.sqrt(tr.k);      // stessa formula dello schermo: puntini, anelli e nomi hanno le stesse proporzioni rispetto al riquadro
-        const ringK = portrait ? 1 : 0.7;      // video orizzontale (PC): anelli più piccoli; il verticale resta com'è
+        const ringK = evRingK();               // stesso fattore dello schermo (PC: metà; telefono: invariato)
         const rr = (x, y, ww, hh, r) => { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + ww, y, x + ww, y + hh, r); ctx.arcTo(x + ww, y + hh, x, y + hh, r); ctx.arcTo(x, y + hh, x, y, r); ctx.arcTo(x, y, x + ww, y, r); ctx.closePath(); };
 
         const panelMode = evPanelMode();
@@ -3138,7 +3168,7 @@
                 if (a < 0) continue;
                 for (const [x, y, s] of stepPulses[j]) {
                     if (np++ >= 60) break;
-                    ctx.lineWidth = (s < 1 ? 1.4 : 2.2) * (portrait ? 1 : 0.85) / kz;
+                    ctx.lineWidth = (s < 1 ? 1.4 : 2.2) * (ringK < 1 ? 0.8 : 1) / kz;
                     ctx.globalAlpha = (1 - a) * (s < 1 ? 0.65 : 1); ctx.beginPath(); ctx.arc(x, y, (3 + 19 * a) * s * ringK / kz, 0, 6.2832); ctx.stroke();
                 }
             }

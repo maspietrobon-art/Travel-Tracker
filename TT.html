@@ -833,12 +833,27 @@
         const base = COUNTRIES.find(c => c.name === name);
         return base ? (base.baseDays || 0) : 0;
     }
+    // Prima volta in un paese: derivata dai viaggi (VOYAGES) = stessi dati di grafici e schede.
+    // Il vecchio file MOVIMENTI resta solo per paesi senza viaggi (Italia, Vaticano...) o correzioni manuali.
+    let _tripFirst = null;
+    function tripFirstMap() {
+        if (_tripFirst) return _tripFirst;
+        _tripFirst = {};
+        TRIPS.slice().sort((a, b) => a.start < b.start ? -1 : 1).forEach(t => {
+            [].concat(t.visit, t.poco, t.attr).forEach(c => {
+                const n = displayCountryName(c);
+                if (!_tripFirst[n]) _tripFirst[n] = { name: n, year: +t.start.slice(0, 4), month: +t.start.slice(5, 7) };
+            });
+        });
+        return _tripFirst;
+    }
     function firstSeenOf(name) {
         if (firstSeenOverrides[name]) return firstSeenOverrides[name];
+        if (name !== 'Italia' && tripFirstMap()[name]) return tripFirstMap()[name];
         return FIRST_SEEN_MAP[name] || null;
     }
     function allChronologyEntries() {
-        const names = new Set([...FIRST_SEEN.map(e => e.name), ...Object.keys(firstSeenOverrides)]);
+        const names = new Set([...FIRST_SEEN.map(e => e.name), ...Object.keys(tripFirstMap()), ...Object.keys(firstSeenOverrides)]);
         const out = [];
         names.forEach(name => {
             const fs = firstSeenOf(name);
@@ -1297,7 +1312,8 @@
         const byYear = {};
         relevant.forEach(e => { (byYear[e.year] = byYear[e.year] || []).push(e.name); });
         const tripsByYear = {};
-        allTripStarts().forEach(s => { const y = +s.slice(0, 4); tripsByYear[y] = (tripsByYear[y] || 0) + 1; });
+        const isIntl = t => t.abroad > 0 || [].concat(t.visit, t.poco, t.attr, t.lont, t.scali).length > 0 && [].concat(t.visit, t.poco, t.attr).some(c => c.toUpperCase() !== 'ITALIA');
+        TRIPS.filter(isIntl).map(t => t.start).concat(extraTrips.map(t => t.startDate)).forEach(s => { const y = +s.slice(0, 4); tripsByYear[y] = (tripsByYear[y] || 0) + 1; });
         // asse del tempo continuo dal primo anno con dati fino a quest'anno (gli anni senza dati valgono 0)
         const allYears = Object.keys(byYear).map(Number).concat(Object.keys(tripsByYear).map(Number));
         const y0 = Math.min(...allYears), y1 = Math.max(Math.max(...allYears), new Date().getFullYear());

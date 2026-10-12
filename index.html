@@ -9,15 +9,15 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Travel Log">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="icon" href="icons/icon-192.png">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>Travel Log — I miei viaggi</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="lib/chart.umd.min.js"></script>
-<script src="lib/d3.min.js"></script>
-<script src="lib/topojson-client.min.js"></script>
+<script src="lib-chart.umd.min.js"></script>
+<script src="lib-d3.min.js"></script>
+<script src="lib-topojson-client.min.js"></script>
 <style>
     :root {
         --bg: #0B1420;
@@ -1257,7 +1257,7 @@
 
     async function loadWorldAtlas() {
         if (cachedWorldFeatures) return cachedWorldFeatures;
-        const world = await d3.json('lib/countries-50m.json');
+        const world = await d3.json('lib-countries-50m.json');
         cachedWorldFeatures = topojson.feature(world, world.objects.countries);
         return cachedWorldFeatures;
     }

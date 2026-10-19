@@ -538,7 +538,7 @@
             <div class="tl-controls">
                 <button class="add-btn" id="eventsPlayBtn" style="padding:8px 16px;">▶ Play</button>
                 <button class="del-btn" id="eventsResetZoomBtn" style="padding:8px 14px;">Reimposta vista</button>
-                <button class="del-btn" id="evSoundBtn" style="padding:8px 14px;" title="Piccola esplosione sonora quando parte un nuovo viaggio">🔊 Suono</button>
+                <button class="del-btn" id="evSoundBtn" style="padding:8px 14px;" title="Piccola esplosione sonora per ogni città che si accende sulla mappa">🔊 Suono</button>
                 <input type="range" id="eventsSlider" min="0" max="1" value="0" style="flex:1;">
                 <span class="tl-year-label" id="eventsLabel">—</span>
             </div>
@@ -2628,7 +2628,7 @@
         document.getElementById('evSoundBtn').addEventListener('click', () => {
             evSoundOn = !evSoundOn;
             try { localStorage.setItem('travelLogSound', evSoundOn ? '1' : '0'); } catch (e) {}
-            evSoundLabel(); if (evSoundOn) { evAudioInit(); setTimeout(evBoom, 60); }
+            evSoundLabel(); if (evSoundOn) { evAudioInit(); setTimeout(() => evBoom(1, true), 60); }
         });
         evSoundLabel();
         document.getElementById('eventsResetZoomBtn').addEventListener('click', () => {
@@ -2868,7 +2868,7 @@
         return (evPulseCache[i] = [...map.values()].slice(0, 30));
     }
     /* ===== Suono: piccola esplosione quando parte un nuovo viaggio (Web Audio, nessun file audio) ===== */
-    let evAudioCtx = null, evSoundOn = true, evLastBoom = 0;
+    let evAudioCtx = null, evSoundOn = true, evNextBoomAt = 0;
     try { evSoundOn = localStorage.getItem('travelLogSound') !== '0'; } catch (e) {}
     function evAudioInit() {   // va chiamata da un gesto dell'utente (clic): i browser non permettono l'audio prima
         try {
@@ -2877,24 +2877,31 @@
         } catch (e) {}
     }
     function evSoundLabel() { const b = document.getElementById('evSoundBtn'); if (b) b.textContent = evSoundOn ? '🔊 Suono' : '🔇 Suono'; }
-    function evBoom() {
+    // Una piccola esplosione per ogni anello (= ogni città che si accende sulla mappa, anche nei viaggi interni).
+    // s = dimensione dell'anello (gli scali sono più piccoli e più tenui); big = primo evento di un nuovo viaggio (un po' più forte).
+    // Se in un passo si accendono molte città, i suoni vengono messi in fila a 70 ms l'uno dall'altro (e oltre mezzo secondo di coda si scartano).
+    function evBoom(s, big) {
         if (!evSoundOn || !evAudioCtx || evAudioCtx.state !== 'running') return;
-        const now = performance.now(); if (now - evLastBoom < 140) return; evLastBoom = now;   // niente raffiche nei periodi molto fitti
+        s = s || 1;
         try {
-            const ctx = evAudioCtx, t = ctx.currentTime;
+            const ctx = evAudioCtx, t = Math.max(ctx.currentTime, evNextBoomAt);
+            if (t - ctx.currentTime > 0.6) return;
+            evNextBoomAt = t + 0.07;
+            const small = s < 1, dur = small ? 0.16 : (big ? 0.45 : 0.3);
+            const vol = small ? 0.09 : (big ? 0.3 : 0.2), pitch = (0.85 + Math.random() * 0.3) * (small ? 1.8 : 1);
             const master = ctx.createGain();
-            master.gain.setValueAtTime(0.0001, t); master.gain.exponentialRampToValueAtTime(0.3, t + 0.01); master.gain.exponentialRampToValueAtTime(0.0001, t + 0.45);
+            master.gain.setValueAtTime(0.0001, t); master.gain.exponentialRampToValueAtTime(vol, t + 0.008); master.gain.exponentialRampToValueAtTime(0.0001, t + dur);
             master.connect(ctx.destination);
-            const len = Math.floor(ctx.sampleRate * 0.45), buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+            const len = Math.floor(ctx.sampleRate * dur), buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
             for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2);
             const src = ctx.createBufferSource(); src.buffer = buf;
             const lp = ctx.createBiquadFilter(); lp.type = 'lowpass';
-            lp.frequency.setValueAtTime(1800, t); lp.frequency.exponentialRampToValueAtTime(120, t + 0.4);
+            lp.frequency.setValueAtTime(1800 * pitch, t); lp.frequency.exponentialRampToValueAtTime(120 * pitch, t + dur * 0.9);
             src.connect(lp); lp.connect(master); src.start(t);
             const o = ctx.createOscillator(); o.type = 'sine';
-            o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(40, t + 0.3);
-            const og = ctx.createGain(); og.gain.setValueAtTime(0.9, t); og.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
-            o.connect(og); og.connect(master); o.start(t); o.stop(t + 0.4);
+            o.frequency.setValueAtTime(140 * pitch, t); o.frequency.exponentialRampToValueAtTime(40 * pitch, t + dur * 0.7);
+            const og = ctx.createGain(); og.gain.setValueAtTime(small ? 0.3 : 0.9, t); og.gain.exponentialRampToValueAtTime(0.001, t + dur * 0.8);
+            o.connect(og); og.connect(master); o.start(t); o.stop(t + dur);
         } catch (e) {}
     }
     // Date in cui inizia un viaggio (primo evento di ciascun viaggio)
@@ -3021,12 +3028,10 @@
             const jStart = (index > prevIdx && index - prevIdx <= 60) ? prevIdx + 1 : index;
             const kz = Math.sqrt(evZoomK);
             let budget = 40;
+            const sound = evSoundOn && !evExporting, starts = sound ? evTripStartDates(allEvents) : null;
             for (let j = jStart; j <= index && budget > 0; j++) {
-                evStepPulses(j, allEvents).forEach(([x, y, s]) => { if (budget-- > 0) evRing(layer, x, y, kz, s); });
-            }
-            if (evSoundOn && !evExporting) {
-                const starts = evTripStartDates(allEvents);
-                for (let j = jStart; j <= index; j++) { if (starts.has(evSteps[j].date)) { evBoom(); break; } }
+                const big = sound && starts.has(evSteps[j].date);
+                evStepPulses(j, allEvents).forEach(([x, y, s], n) => { if (budget-- > 0) { evRing(layer, x, y, kz, s); if (sound) evBoom(s, big && n === 0); } });
             }
         }
     }

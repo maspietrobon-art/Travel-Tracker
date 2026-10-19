@@ -526,11 +526,15 @@
                 <select id="eventsExportPanel" title="Testi sovrapposti al video" style="background:var(--bg); border:1px solid var(--line); color:var(--text); border-radius:8px; padding:7px 8px; font-family:inherit;">
                     <option value="full" selected>testi: data e legenda</option><option value="date">solo data</option><option value="none">nessun testo</option>
                 </select>
+                <label title="Mostra la mia età (in anni) accanto ai conteggi, nel video e nell'anteprima" style="display:inline-flex; align-items:center; gap:5px; font-size:0.85em; color:var(--text); cursor:pointer;"><input type="checkbox" id="eventsShowAge" checked> età</label>
                 <button class="del-btn" id="eventsPreviewBtn" style="padding:7px 14px;" title="Mostra sulla mappa il riquadro esatto del video, con data e legenda al loro posto">▢ Anteprima riquadro</button>
                 <select id="eventsExportSec" title="Durata del video" style="background:var(--bg); border:1px solid var(--line); color:var(--text); border-radius:8px; padding:7px 8px; font-family:inherit;">
                     <option value="30">video 30 s</option><option value="60" selected>video 60 s</option><option value="90">video 90 s</option>
                 </select>
-                <button class="del-btn" id="eventsExportBtn" style="padding:7px 14px;" title="Registra l'animazione (vista e zoom attuali) e scarica il video: MP4 se il browser lo permette, altrimenti WebM">⬇ Esporta video</button>
+                <select id="eventsExportFmt" title="MP4 universale: lo converto in H.264 + AAC standard, che WhatsApp, iPhone, PowerPoint e le altre app accettano (la conversione richiede da 30 secondi a un paio di minuti). Veloce: salva subito il formato che produce il browser, che alcune app rifiutano." style="background:var(--bg); border:1px solid var(--line); color:var(--text); border-radius:8px; padding:7px 8px; font-family:inherit;">
+                    <option value="universal" selected>MP4 universale (WhatsApp)</option><option value="fast">veloce (formato del browser)</option>
+                </select>
+                <button class="del-btn" id="eventsExportBtn" style="padding:7px 14px;" title="Registra l'animazione (vista e zoom attuali) e scarica il video, con il suono se è acceso">⬇ Esporta video</button>
                 <span id="eventsExportStatus" style="flex-basis:100%; text-align:right; font-size:0.75em; color:var(--muted);"></span>
             </div>
             <svg id="eventsMap" viewBox="0 0 960 500"></svg>
@@ -2655,6 +2659,11 @@
         });
         document.getElementById('eventsExportOrient').addEventListener('change', () => { evApplyViewport(); });
         document.getElementById('eventsExportPanel').addEventListener('change', () => evPreviewSync());
+        document.getElementById('eventsShowAge').addEventListener('change', () => {
+            evPreviewSync();
+            const l = document.getElementById('eventsLabel'), t = l.textContent.replace(/ · \d+ anni?$/, ''), m = /^(\d\d)\/(\d\d)\/(\d{4})/.exec(t);
+            if (m) l.textContent = t + evAgeText(`${m[3]}-${m[2]}-${m[1]}`);
+        });
         document.getElementById('eventsPreviewBtn').addEventListener('click', () => {
             evPreviewOn = !evPreviewOn;
             const bt = document.getElementById('eventsPreviewBtn'); bt.classList.toggle('add-btn', evPreviewOn); bt.classList.toggle('del-btn', !evPreviewOn);
@@ -3021,12 +3030,12 @@
         const cnt = document.getElementById('evCityCount');
         if (cnt) cnt.textContent = `${all.length} città sulla mappa su ${MAP_CITIES.length}`;
 
-        evPrevState = { date: formatDate(labelDate), nCities: shown.length,
+        evPrevState = { iso: labelDate, date: formatDate(labelDate), nCities: shown.length,
                         nCountries: Object.keys(evCountryTimeline).filter(n => evCountryLevelAt(n, date)).length,
                         route: current ? evRouteText(current) : '' };
         evPreviewText();
         document.getElementById('eventsSlider').value = evMode === 'chrono' ? evDayOf(labelDate) : index;
-        document.getElementById('eventsLabel').textContent = evMode === 'chrono' ? formatDate(labelDate) : `${formatDate(date)} (${index + 1}/${evSteps.length})`;
+        document.getElementById('eventsLabel').textContent = (evMode === 'chrono' ? formatDate(labelDate) : `${formatDate(date)} (${index + 1}/${evSteps.length})`) + evAgeText(labelDate);
         document.getElementById('eventsCurrentNote').textContent = current
             ? `${formatDate(current.date)} · ${current.route}${current.altri ? ' · ' + current.altri : ''}${current.come ? ' · ' + current.come : ''}` : '';
 
@@ -3076,7 +3085,7 @@
                 const idx = evIndexForDay(day);
                 const labelDate = evDateOfDay(day);
                 if (idx !== lastIdx) { updateEventsMap(idx, { labelDate }); lastIdx = idx; }
-                else { slider.value = day; document.getElementById('eventsLabel').textContent = formatDate(labelDate); }
+                else { slider.value = day; document.getElementById('eventsLabel').textContent = formatDate(labelDate) + evAgeText(labelDate); }
                 if (day >= evTotalDays()) { stopEventsPlay(); return; }
                 evRaf = requestAnimationFrame(tick);
             };
@@ -3126,13 +3135,21 @@
     }
     const EV_FONTS = { date: '700 44px "JetBrains Mono", monospace', cnt: '600 20px Manrope, sans-serif', route: '500 15px Manrope, sans-serif', leg: '600 14px Manrope, sans-serif' };
     function evRouteText(e) { const t = `${e.route}${e.come ? ' · ' + e.come : ''}`; return t.length > 27 ? t.slice(0, 26) + '…' : t; }
+    const EV_BIRTH = [1977, 10, 7];
+    function evShowAge() { const c = document.getElementById('eventsShowAge'); return !c || c.checked; }
+    function evAgeText(iso) {
+        if (!evShowAge() || !iso) return '';
+        const [y, m, d] = iso.split('-').map(Number);
+        let a = y - EV_BIRTH[0]; if (m < EV_BIRTH[1] || (m === EV_BIRTH[1] && d < EV_BIRTH[2])) a--;
+        return a < 0 ? '' : ` · ${a} ${a === 1 ? 'anno' : 'anni'}`;
+    }
     function evPanelMode() { const s = document.getElementById('eventsExportPanel'); return s ? s.value : 'full'; }
     // Pannello in basso a sinistra (data, conteggi, tratta e, se richiesto, legenda): dimensioni in pixel del VIDEO.
     function evOverlayLayout(ctx, portrait, events, legendItems, mode) {
         if (mode === 'none') return null;
         const items = mode === 'full' ? legendItems : [];
         const mw = (font, txt) => { ctx.font = font; return ctx.measureText(txt).width; };
-        const wText = Math.ceil(Math.max(mw(EV_FONTS.date, '00/00/0000'), mw(EV_FONTS.cnt, '000 città · 00 paesi'), ...events.map(e => mw(EV_FONTS.route, evRouteText(e)))));
+        const wText = Math.ceil(Math.max(mw(EV_FONTS.date, '00/00/0000'), mw(EV_FONTS.cnt, '000 città · 00 paesi' + (evShowAge() ? ' · 00 anni' : '')), ...events.map(e => mw(EV_FONTS.route, evRouteText(e)))));
         const wLeg = items.length ? Math.ceil(Math.max(...items.map(k => mw(EV_FONTS.leg, CATEGORY_LABELS[k])))) + 22 : 0;
         const PAD = 18, GAP = 26, TEXT_H = 88, LEG_ROW = 21, MARGIN = 24;
         const legH = items.length * LEG_ROW;
@@ -3149,7 +3166,7 @@
     function evPreviewText() {
         const d = document.getElementById('evPvDate'); if (!d) return;
         d.textContent = evPrevState.date;
-        document.getElementById('evPvCnt').textContent = `${evPrevState.nCities} città · ${evPrevState.nCountries} paesi`;
+        document.getElementById('evPvCnt').textContent = `${evPrevState.nCities} città · ${evPrevState.nCountries} paesi${evAgeText(evPrevState.iso)}`;
         document.getElementById('evPvRoute').textContent = evPrevState.route;
     }
     function evPreviewSync() {
@@ -3178,6 +3195,55 @@
         evPreviewText();
     }
 
+    /* ===== MP4 universale: conversione nel browser (ffmpeg.wasm) in H.264 + AAC standard, avvio rapido, 30 fps costanti ===== */
+    // Il browser registra un MP4 "frammentato" o un WebM che WhatsApp e altre app rifiutano ("formato insolito").
+    // ffmpeg.wasm viene scaricato solo al momento dell'esportazione (circa 30 MB, poi resta nella cache del browser).
+    let evFFmpegPromise = null;
+    function evLoadScript(src) {
+        return new Promise((res, rej) => {
+            const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => rej(new Error('Impossibile scaricare ' + src));
+            document.head.appendChild(s);
+        });
+    }
+    function evLoadFFmpeg() {
+        if (evFFmpegPromise) return evFFmpegPromise;
+        evFFmpegPromise = (async () => {
+            const U = 'https://unpkg.com/';
+            const base = U + '@ffmpeg/ffmpeg@0.12.10/dist/umd/', core = U + '@ffmpeg/core@0.12.6/dist/esm/';
+            if (!window.FFmpegWASM) await evLoadScript(base + 'ffmpeg.js');
+            if (!window.FFmpegUtil) await evLoadScript(U + '@ffmpeg/util@0.12.1/dist/umd/index.js');
+            const ff = new FFmpegWASM.FFmpeg(), toBlob = FFmpegUtil.toBlobURL;
+            await Promise.race([ff.load({
+                classWorkerURL: await toBlob(base + '814.ffmpeg.js', 'text/javascript'),
+                coreURL: await toBlob(core + 'ffmpeg-core.js', 'text/javascript'),
+                wasmURL: await toBlob(core + 'ffmpeg-core.wasm', 'application/wasm')
+            }), new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 90000))]);
+            return ff;
+        })();
+        evFFmpegPromise.catch(() => { evFFmpegPromise = null; });   // se fallisce (offline), al prossimo tentativo si riprova
+        return evFFmpegPromise;
+    }
+    async function evToUniversalMp4(blob, ext, seconds, onProgress) {
+        const ff = await evLoadFFmpeg();
+        const onLog = ({ message }) => {
+            const m = /time=(\d+):(\d+):(\d+(?:\.\d+)?)/.exec(message || '');
+            if (m && onProgress) onProgress(Math.min(99, Math.round((+m[1] * 3600 + +m[2] * 60 + +m[3]) / seconds * 100)));
+        };
+        ff.on('log', onLog);
+        try {
+            await ff.writeFile('in.' + ext, new Uint8Array(await blob.arrayBuffer()));
+            const rc = await ff.exec(['-i', 'in.' + ext, '-r', '30', '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '24', '-profile:v', 'baseline', '-level', '4.0',
+                                      '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '128k', '-ar', '44100', '-movflags', '+faststart', 'out.mp4']);
+            if (rc !== 0) throw new Error('ffmpeg codice ' + rc);
+            const out = await ff.readFile('out.mp4');
+            return new Blob([out.buffer], { type: 'video/mp4' });
+        } finally {
+            ff.off('log', onLog);
+            try { await ff.deleteFile('in.' + ext); } catch (e) {}
+            try { await ff.deleteFile('out.mp4'); } catch (e) {}
+        }
+    }
+
     async function exportEventsVideo(totalSec) {
         if (evExporting) return;
         const features = await loadWorldAtlas();
@@ -3189,7 +3255,13 @@
         const mimesAudio = ['video/mp4;codecs=avc1.640028,mp4a.40.2', 'video/mp4;codecs=avc1.42E01F,mp4a.40.2', 'video/mp4;codecs=avc1.42001E,mp4a.40.2',
                             'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus'];
         const mimeOK = list => (window.MediaRecorder && list.find(m => MediaRecorder.isTypeSupported(m))) || null;
-        const mime = (evSoundOn && mimeOK(mimesAudio)) || mimeOK(mimes);
+        const fmtSel = document.getElementById('eventsExportFmt');
+        const universal = !fmtSel || fmtSel.value !== 'fast';
+        // Per la conversione universale conviene registrare in WebM (tempi regolari); il formato "veloce" salva direttamente il file del browser.
+        const mime = universal
+            ? (mimeOK(evSoundOn ? ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus'] : ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'])
+               || (evSoundOn && mimeOK(mimesAudio)) || mimeOK(mimes))
+            : ((evSoundOn && mimeOK(mimesAudio)) || mimeOK(mimes));
         const statusEl = document.getElementById('eventsExportStatus');
         if (statusEl) statusEl.textContent = '';
         if (!mime) { alert('Questo browser non supporta la registrazione video dal canvas. Prova con Chrome, Edge o Firefox da computer.'); return; }
@@ -3291,7 +3363,7 @@
                 const px = L.MARGIN, py = H - L.MARGIN - L.panelH, tx = px + L.PAD, ty = py + L.PAD + 34;
                 ctx.fillStyle = 'rgba(11,20,32,0.72)'; rr(px, py, L.panelW, L.panelH, 14); ctx.fill();
                 ctx.fillStyle = '#F5A623'; ctx.font = EV_FONTS.date; ctx.fillText(formatDate(labelDate), tx, ty);
-                ctx.fillStyle = '#E9EEF4'; ctx.font = EV_FONTS.cnt; ctx.fillText(`${vis.length} città · ${nCountries} paesi`, tx, ty + 30);
+                ctx.fillStyle = '#E9EEF4'; ctx.font = EV_FONTS.cnt; ctx.fillText(`${vis.length} città · ${nCountries} paesi${evAgeText(labelDate)}`, tx, ty + 30);
                 if (current) { ctx.fillStyle = '#7E90A8'; ctx.font = EV_FONTS.route; ctx.fillText(evRouteText(current), tx, ty + 50); }
                 if (L.items.length) {
                     const lx = L.side ? tx + L.wText + L.GAP : tx;
@@ -3347,18 +3419,34 @@
         await done;
         stream.getTracks().forEach(tk => tk.stop());
         if (aCtx) { try { aCtx.close(); } catch (e) {} }
+        if (evExportCancel || !chunks.length) { evExporting = false; btn.textContent = label; return; }
+        let blob = new Blob(chunks, { type: mime.split(';')[0] });
+        let ext = mime.indexOf('mp4') >= 0 ? 'mp4' : 'webm', converted = false, convErr = '';
+        if (universal) {
+            // conversione in MP4 standard (H.264 + AAC): quello che WhatsApp & co. accettano. Se non riesce, salvo il file così com'è.
+            const secs = (play + hold) / 1000, t1 = performance.now();
+            const say = pct => {
+                const txt = pct == null ? 'Preparo la conversione… la prima volta scarica circa 30 MB.' : `Conversione in MP4 universale… ${pct}%`;
+                if (statusEl) statusEl.textContent = txt; btn.textContent = pct == null ? 'Conversione…' : `Conversione ${pct}%`;
+            };
+            say(null);
+            try { blob = await Promise.race([evToUniversalMp4(blob, ext, secs, say), new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 120000 + secs * 6000))]); ext = 'mp4'; converted = true; }
+            catch (e) { convErr = (e && e.message) || String(e); console.warn('Conversione MP4 non riuscita', e); }
+        }
         evExporting = false;
         btn.textContent = label;
-        if (evExportCancel || !chunks.length) return;
-        const blob = new Blob(chunks, { type: mime.split(';')[0] });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url; a.download = 'viaggi-nel-tempo.' + (mime.indexOf('mp4') >= 0 ? 'mp4' : 'webm');
+        a.href = url; a.download = 'viaggi-nel-tempo.' + ext;
         document.body.appendChild(a); a.click(); a.remove();
         setTimeout(() => URL.revokeObjectURL(url), 5000);
-        if (statusEl) statusEl.textContent = mime.indexOf('mp4') >= 0
-            ? `Video ${portrait ? 'verticale' : 'orizzontale'} salvato come MP4 (H.264)${aCtx ? ', con il suono' : ''}: si apre su quasi tutti i dispositivi e app.`
-            : `Video ${portrait ? 'verticale' : 'orizzontale'} salvato come WebM${aCtx ? ' (con il suono)' : ''}: questo browser non sa creare MP4. Se un\'app non lo apre, convertilo (es. con VLC o CloudConvert) o riprova da Chrome/Edge recenti o Safari.`;
+        const orient = portrait ? 'verticale' : 'orizzontale', snd = aCtx ? ' con il suono' : '';
+        if (statusEl) statusEl.textContent = converted
+            ? `Video ${orient} salvato come MP4 universale (H.264 + AAC)${snd}: si apre su WhatsApp, iPhone, PowerPoint e quasi tutte le app.`
+            : (universal ? `Conversione in MP4 universale non riuscita (${convErr || 'errore'}): serve la connessione a internet per scaricare il convertitore. Ho salvato il video nel formato del browser (${ext.toUpperCase()}${snd}), che alcune app (WhatsApp) potrebbero rifiutare.`
+            : (ext === 'mp4'
+                ? `Video ${orient} salvato come MP4 (formato del browser${snd}): se WhatsApp lo rifiuta, scegli "MP4 universale".`
+                : `Video ${orient} salvato come WebM${snd}: questo browser non sa creare MP4. Per WhatsApp scegli "MP4 universale".`));
         return blob;
     }
     window.exportEventsVideo = exportEventsVideo;

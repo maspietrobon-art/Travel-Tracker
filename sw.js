@@ -1,5 +1,5 @@
-/* Service worker Travel Log — versione 57a77349da (si aggiorna da sola a ogni nuova pubblicazione) */
-const VERSION = '57a77349da';
+/* Service worker Travel Log — versione a03f3251a9 (si aggiorna da sola a ogni nuova pubblicazione) */
+const VERSION = 'a03f3251a9';
 const CORE = 'travel-log-core-' + VERSION;
 const RUNTIME = 'travel-log-runtime';
 const CORE_FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './lib-chart.umd.min.js', './lib-d3.min.js', './lib-topojson-client.min.js', './lib-countries-50m.json'];

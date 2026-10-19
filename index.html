@@ -538,6 +538,7 @@
             <div class="tl-controls">
                 <button class="add-btn" id="eventsPlayBtn" style="padding:8px 16px;">▶ Play</button>
                 <button class="del-btn" id="eventsResetZoomBtn" style="padding:8px 14px;">Reimposta vista</button>
+                <button class="del-btn" id="evSoundBtn" style="padding:8px 14px;" title="Piccola esplosione sonora quando parte un nuovo viaggio">🔊 Suono</button>
                 <input type="range" id="eventsSlider" min="0" max="1" value="0" style="flex:1;">
                 <span class="tl-year-label" id="eventsLabel">—</span>
             </div>
@@ -2621,8 +2622,15 @@
         });
         document.getElementById('evSpeed').addEventListener('change', (e) => { evChronoSpeed = +e.target.value; });
         document.getElementById('eventsPlayBtn').addEventListener('click', () => {
+            evAudioInit();
             if (evPlaying) stopEventsPlay(); else startEventsPlay();
         });
+        document.getElementById('evSoundBtn').addEventListener('click', () => {
+            evSoundOn = !evSoundOn;
+            try { localStorage.setItem('travelLogSound', evSoundOn ? '1' : '0'); } catch (e) {}
+            evSoundLabel(); if (evSoundOn) { evAudioInit(); setTimeout(evBoom, 60); }
+        });
+        evSoundLabel();
         document.getElementById('eventsResetZoomBtn').addEventListener('click', () => {
             if (window.__evSvg && window.__evZoom) {
                 window.__evSvg.transition().duration(400).call(window.__evZoom.transform, evBaseTransform());
@@ -2859,6 +2867,42 @@
         events.forEach(e => { if (e.date === date) { const m = eventMarkerXY(e); if (m) add(m.xy[0], m.xy[1], evIsScaloLeg(e) ? SCALO_RING : 1); } });
         return (evPulseCache[i] = [...map.values()].slice(0, 30));
     }
+    /* ===== Suono: piccola esplosione quando parte un nuovo viaggio (Web Audio, nessun file audio) ===== */
+    let evAudioCtx = null, evSoundOn = true, evLastBoom = 0;
+    try { evSoundOn = localStorage.getItem('travelLogSound') !== '0'; } catch (e) {}
+    function evAudioInit() {   // va chiamata da un gesto dell'utente (clic): i browser non permettono l'audio prima
+        try {
+            if (!evAudioCtx) { const AC = window.AudioContext || window.webkitAudioContext; if (AC) evAudioCtx = new AC(); }
+            if (evAudioCtx && evAudioCtx.state === 'suspended') evAudioCtx.resume();
+        } catch (e) {}
+    }
+    function evSoundLabel() { const b = document.getElementById('evSoundBtn'); if (b) b.textContent = evSoundOn ? '🔊 Suono' : '🔇 Suono'; }
+    function evBoom() {
+        if (!evSoundOn || !evAudioCtx || evAudioCtx.state !== 'running') return;
+        const now = performance.now(); if (now - evLastBoom < 140) return; evLastBoom = now;   // niente raffiche nei periodi molto fitti
+        try {
+            const ctx = evAudioCtx, t = ctx.currentTime;
+            const master = ctx.createGain();
+            master.gain.setValueAtTime(0.0001, t); master.gain.exponentialRampToValueAtTime(0.3, t + 0.01); master.gain.exponentialRampToValueAtTime(0.0001, t + 0.45);
+            master.connect(ctx.destination);
+            const len = Math.floor(ctx.sampleRate * 0.45), buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+            for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2);
+            const src = ctx.createBufferSource(); src.buffer = buf;
+            const lp = ctx.createBiquadFilter(); lp.type = 'lowpass';
+            lp.frequency.setValueAtTime(1800, t); lp.frequency.exponentialRampToValueAtTime(120, t + 0.4);
+            src.connect(lp); lp.connect(master); src.start(t);
+            const o = ctx.createOscillator(); o.type = 'sine';
+            o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(40, t + 0.3);
+            const og = ctx.createGain(); og.gain.setValueAtTime(0.9, t); og.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+            o.connect(og); og.connect(master); o.start(t); o.stop(t + 0.4);
+        } catch (e) {}
+    }
+    // Date in cui inizia un viaggio (primo evento di ciascun viaggio)
+    function evTripStartDates(allEvents) {
+        const first = {};
+        allEvents.forEach(e => { if (e.trip != null && (first[e.trip] === undefined || e.date < first[e.trip])) first[e.trip] = e.date; });
+        return new Set(Object.values(first));
+    }
     let evLastIdx = 0;
     // Su PC (mouse, schermo grande) gli anelli sono grandi la metà; su telefono e tablet restano come sono.
     // Lo stesso fattore vale per l'anteprima, la riproduzione e il video esportato, così coincidono.
@@ -2979,6 +3023,10 @@
             let budget = 40;
             for (let j = jStart; j <= index && budget > 0; j++) {
                 evStepPulses(j, allEvents).forEach(([x, y, s]) => { if (budget-- > 0) evRing(layer, x, y, kz, s); });
+            }
+            if (evSoundOn && !evExporting) {
+                const starts = evTripStartDates(allEvents);
+                for (let j = jStart; j <= index; j++) { if (starts.has(evSteps[j].date)) { evBoom(); break; } }
             }
         }
     }

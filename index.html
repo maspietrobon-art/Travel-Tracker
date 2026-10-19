@@ -2877,31 +2877,42 @@
         } catch (e) {}
     }
     function evSoundLabel() { const b = document.getElementById('evSoundBtn'); if (b) b.textContent = evSoundOn ? '🔊 Suono' : '🔇 Suono'; }
-    // Una piccola esplosione per ogni anello (= ogni città che si accende sulla mappa, anche nei viaggi interni).
+    // Sintesi dell'esplosione: la stessa per la riproduzione dal vivo e per l'audio del video esportato.
     // s = dimensione dell'anello (gli scali sono più piccoli e più tenui); big = primo evento di un nuovo viaggio (un po' più forte).
-    // Se in un passo si accendono molte città, i suoni vengono messi in fila a 70 ms l'uno dall'altro (e oltre mezzo secondo di coda si scartano).
+    const evNoiseBufs = new WeakMap();
+    function evNoise(ctx, dur) {
+        let m = evNoiseBufs.get(ctx); if (!m) { m = {}; evNoiseBufs.set(ctx, m); }
+        const k = dur.toFixed(2);
+        if (!m[k]) {
+            const len = Math.floor(ctx.sampleRate * dur), buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+            for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2);
+            m[k] = buf;
+        }
+        return m[k];
+    }
+    function evSynthBoom(ctx, dest, t, s, big) {
+        const small = s < 1, dur = small ? 0.16 : (big ? 0.45 : 0.3);
+        const vol = small ? 0.09 : (big ? 0.3 : 0.2), pitch = (0.85 + Math.random() * 0.3) * (small ? 1.8 : 1);
+        const master = ctx.createGain();
+        master.gain.setValueAtTime(0.0001, t); master.gain.exponentialRampToValueAtTime(vol, t + 0.008); master.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        master.connect(dest);
+        const src = ctx.createBufferSource(); src.buffer = evNoise(ctx, dur);
+        const lp = ctx.createBiquadFilter(); lp.type = 'lowpass';
+        lp.frequency.setValueAtTime(1800 * pitch, t); lp.frequency.exponentialRampToValueAtTime(120 * pitch, t + dur * 0.9);
+        src.connect(lp); lp.connect(master); src.start(t);
+        const o = ctx.createOscillator(); o.type = 'sine';
+        o.frequency.setValueAtTime(140 * pitch, t); o.frequency.exponentialRampToValueAtTime(40 * pitch, t + dur * 0.7);
+        const og = ctx.createGain(); og.gain.setValueAtTime(small ? 0.3 : 0.9, t); og.gain.exponentialRampToValueAtTime(0.001, t + dur * 0.8);
+        o.connect(og); og.connect(master); o.start(t); o.stop(t + dur);
+    }
+    // Dal vivo: se in un passo si accendono molte città, i suoni vengono messi in fila a 70 ms l'uno dall'altro (oltre mezzo secondo di coda si scartano).
     function evBoom(s, big) {
         if (!evSoundOn || !evAudioCtx || evAudioCtx.state !== 'running') return;
-        s = s || 1;
         try {
             const ctx = evAudioCtx, t = Math.max(ctx.currentTime, evNextBoomAt);
             if (t - ctx.currentTime > 0.6) return;
             evNextBoomAt = t + 0.07;
-            const small = s < 1, dur = small ? 0.16 : (big ? 0.45 : 0.3);
-            const vol = small ? 0.09 : (big ? 0.3 : 0.2), pitch = (0.85 + Math.random() * 0.3) * (small ? 1.8 : 1);
-            const master = ctx.createGain();
-            master.gain.setValueAtTime(0.0001, t); master.gain.exponentialRampToValueAtTime(vol, t + 0.008); master.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-            master.connect(ctx.destination);
-            const len = Math.floor(ctx.sampleRate * dur), buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
-            for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2);
-            const src = ctx.createBufferSource(); src.buffer = buf;
-            const lp = ctx.createBiquadFilter(); lp.type = 'lowpass';
-            lp.frequency.setValueAtTime(1800 * pitch, t); lp.frequency.exponentialRampToValueAtTime(120 * pitch, t + dur * 0.9);
-            src.connect(lp); lp.connect(master); src.start(t);
-            const o = ctx.createOscillator(); o.type = 'sine';
-            o.frequency.setValueAtTime(140 * pitch, t); o.frequency.exponentialRampToValueAtTime(40 * pitch, t + dur * 0.7);
-            const og = ctx.createGain(); og.gain.setValueAtTime(small ? 0.3 : 0.9, t); og.gain.exponentialRampToValueAtTime(0.001, t + dur * 0.8);
-            o.connect(og); og.connect(master); o.start(t); o.stop(t + dur);
+            evSynthBoom(ctx, ctx.destination, t, s || 1, big);
         } catch (e) {}
     }
     // Date in cui inizia un viaggio (primo evento di ciascun viaggio)
@@ -3175,13 +3186,25 @@
         // Se il browser non sa crearlo si ripiega su WebM. Non uso "video/mp4" generico: in alcuni browser contiene VP9, non H.264.
         const mimes = ['video/mp4;codecs=avc1.640028', 'video/mp4;codecs=avc1.42E01F', 'video/mp4;codecs=avc1.42001E', 'video/mp4;codecs=avc1',
                        'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
-        const mime = (window.MediaRecorder && mimes.find(m => MediaRecorder.isTypeSupported(m))) || null;
+        const mimesAudio = ['video/mp4;codecs=avc1.640028,mp4a.40.2', 'video/mp4;codecs=avc1.42E01F,mp4a.40.2', 'video/mp4;codecs=avc1.42001E,mp4a.40.2',
+                            'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus'];
+        const mimeOK = list => (window.MediaRecorder && list.find(m => MediaRecorder.isTypeSupported(m))) || null;
+        const mime = (evSoundOn && mimeOK(mimesAudio)) || mimeOK(mimes);
         const statusEl = document.getElementById('eventsExportStatus');
         if (statusEl) statusEl.textContent = '';
         if (!mime) { alert('Questo browser non supporta la registrazione video dal canvas. Prova con Chrome, Edge o Firefox da computer.'); return; }
 
         stopEventsPlay();
         evExporting = true; evExportCancel = false;
+        // Audio del video: se il suono è attivo, le stesse esplosioni della riproduzione vengono registrate nel file.
+        // Il contesto audio va creato subito (finché vale il clic dell'utente), prima di qualsiasi attesa.
+        let aCtx = null, aDest = null;
+        if (evSoundOn) {
+            try {
+                const AC = window.AudioContext || window.webkitAudioContext;
+                aCtx = new AC(); aDest = aCtx.createMediaStreamDestination(); aCtx.resume();
+            } catch (e) { aCtx = null; aDest = null; }
+        }
         // Orientamento: come lo schermo (verticale se più alto che largo), oppure scelto a mano
         const geo = evExportGeometry();
         const portrait = geo.portrait, W = geo.W, H = geo.H;
@@ -3284,7 +3307,23 @@
             }
         }
 
-        const stream = cv.captureStream(30);
+        const vstream = cv.captureStream(30);
+        let stream = vstream;
+        if (aCtx && aDest) {
+            // un'esplosione per ogni anello, agli stessi istanti dell'animazione (start[] è in millisecondi dall'inizio)
+            const T0 = aCtx.currentTime + 0.05, starts = evTripStartDates(events);
+            let q = 0;
+            stepPulses.forEach((pl, i) => {
+                const base = start[i] / 1000, big = starts.has(evSteps[i].date);
+                pl.forEach(([x, y, s], n) => {
+                    const tt = Math.max(base, q);
+                    if (tt - base > 0.6) return;
+                    q = tt + 0.07;
+                    evSynthBoom(aCtx, aDest, T0 + tt, s, big && n === 0);
+                });
+            });
+            stream = new MediaStream([...vstream.getVideoTracks(), ...aDest.stream.getAudioTracks()]);
+        }
         const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 6000000 });
         const chunks = [];
         rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
@@ -3307,6 +3346,7 @@
         rec.stop();
         await done;
         stream.getTracks().forEach(tk => tk.stop());
+        if (aCtx) { try { aCtx.close(); } catch (e) {} }
         evExporting = false;
         btn.textContent = label;
         if (evExportCancel || !chunks.length) return;
@@ -3317,8 +3357,8 @@
         document.body.appendChild(a); a.click(); a.remove();
         setTimeout(() => URL.revokeObjectURL(url), 5000);
         if (statusEl) statusEl.textContent = mime.indexOf('mp4') >= 0
-            ? `Video ${portrait ? 'verticale' : 'orizzontale'} salvato come MP4 (H.264): si apre su quasi tutti i dispositivi e app.`
-            : `Video ${portrait ? 'verticale' : 'orizzontale'} salvato come WebM: questo browser non sa creare MP4. Se un\'app non lo apre, convertilo (es. con VLC o CloudConvert) o riprova da Chrome/Edge recenti o Safari.`;
+            ? `Video ${portrait ? 'verticale' : 'orizzontale'} salvato come MP4 (H.264)${aCtx ? ', con il suono' : ''}: si apre su quasi tutti i dispositivi e app.`
+            : `Video ${portrait ? 'verticale' : 'orizzontale'} salvato come WebM${aCtx ? ' (con il suono)' : ''}: questo browser non sa creare MP4. Se un\'app non lo apre, convertilo (es. con VLC o CloudConvert) o riprova da Chrome/Edge recenti o Safari.`;
         return blob;
     }
     window.exportEventsVideo = exportEventsVideo;
